@@ -1,0 +1,429 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Role {
+  CUSTOMER
+  INVESTOR
+  ADMIN
+}
+
+enum KycStatus {
+  NONE
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  SOLD_OUT
+  ARCHIVED
+}
+
+enum HousingType {
+  BUNGALOW
+  DUPLEX
+  TERRACE
+  APARTMENT
+  MAISONETTE
+  PENTHOUSE
+  OTHER
+}
+
+enum ProjectStatus {
+  ONGOING
+  COMPLETED
+  UPCOMING
+}
+
+enum InvestmentProjectStatus {
+  OPEN
+  CLOSED
+  MATURED
+}
+
+enum ListingType {
+  LAND
+  HOUSING
+}
+
+enum PaymentMode {
+  OUTRIGHT
+  INSTALLMENT
+}
+
+enum InstallmentStatus {
+  PENDING
+  DUE
+  PAID
+  OVERDUE
+}
+
+enum InvoiceStatus {
+  UNPAID
+  AWAITING_REVIEW
+  PAID
+  CANCELLED
+}
+
+enum InvoiceTarget {
+  PURCHASE
+  INVESTMENT
+}
+
+enum InvestmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  MATURED
+}
+
+enum DocumentKind {
+  ALLOCATION
+  RECEIPT
+  AGREEMENT
+  KYC
+  OTHER
+}
+
+enum NotificationType {
+  INFO
+  PAYMENT
+  REMINDER
+  APPROVAL
+  SYSTEM
+}
+
+enum InspectionStatus {
+  PENDING
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  emailVerified     DateTime?
+  passwordHash      String?
+  name              String?
+  phone             String?
+  role              Role     @default(CUSTOMER)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  customerProfile   CustomerProfile?
+  investorProfile   InvestorProfile?
+  accounts          Account[]
+  sessions          Session[]
+  purchases         Purchase[]
+  investments       Investment[]
+  documents         Document[]
+  notifications     Notification[]
+  paymentsRecorded  Payment[] @relation("PaymentRecorder")
+
+  @@index([role])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  purpose    String   @default("verify") // verify | reset
+
+  @@unique([identifier, token])
+}
+
+model CustomerProfile {
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  address    String?
+  nextOfKin  String?
+  kycStatus  KycStatus @default(NONE)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model InvestorProfile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  kycStatus     KycStatus @default(NONE)
+  kycDocKeys    String[]
+  bankName      String?
+  bankAccount   String?
+  bankAccName   String?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LandListing {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  title           String
+  location        String
+  plotSizeSqm     Int
+  priceOutright   Decimal?      @db.Decimal(14, 2)
+  priceInstallment Decimal?     @db.Decimal(14, 2)
+  paymentPlans    Json          // [{ months, deposit, monthly }]
+  features        String[]
+  mapLat          Float?
+  mapLng          Float?
+  galleryKeys     String[]
+  brochureKey     String?
+  status          ListingStatus @default(DRAFT)
+  seoTitle        String?
+  seoDescription  String?
+  ogImageKey      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  inspections     InspectionBooking[]
+
+  @@index([status])
+  @@index([location])
+}
+
+model HousingListing {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  title           String
+  type            HousingType
+  description     Json          // TipTap JSON
+  floorPlanKeys   String[]
+  price           Decimal       @db.Decimal(14, 2)
+  paymentPlans    Json
+  galleryKeys     String[]
+  videoUrl        String?
+  bedrooms        Int?
+  bathrooms       Int?
+  location        String
+  brochureKey     String?
+  status          ListingStatus @default(DRAFT)
+  seoTitle        String?
+  seoDescription  String?
+  ogImageKey      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  inspections     InspectionBooking[]
+
+  @@index([status])
+  @@index([type])
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  status         ProjectStatus
+  description    String        @db.Text
+  galleryKeys    String[]
+  location       String?
+  completionDate DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model InvestmentProject {
+  id               String                  @id @default(cuid())
+  slug             String                  @unique
+  title            String
+  description      String                  @db.Text
+  minAmount        Decimal                 @db.Decimal(14, 2)
+  roiPercent       Float
+  durationMonths   Int
+  maturityDate     DateTime
+  totalTarget      Decimal                 @db.Decimal(14, 2)
+  totalRaised      Decimal                 @db.Decimal(14, 2) @default(0)
+  status           InvestmentProjectStatus @default(OPEN)
+  galleryKeys      String[]
+  docKeys          String[]
+  seoTitle         String?
+  seoDescription   String?
+  ogImageKey       String?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  investments      Investment[]
+}
+
+model Purchase {
+  id                String         @id @default(cuid())
+  customerId        String
+  listingType       ListingType
+  listingId         String
+  totalPrice        Decimal        @db.Decimal(14, 2)
+  paymentMode       PaymentMode
+  startedAt         DateTime       @default(now())
+  allocationDocKey  String?
+  notes             String?        @db.Text
+
+  customer    User          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  installments Installment[]
+  invoices     Invoice[]
+
+  @@index([customerId])
+  @@index([listingType, listingId])
+}
+
+model Installment {
+  id         String            @id @default(cuid())
+  purchaseId String
+  dueDate    DateTime
+  amount     Decimal           @db.Decimal(14, 2)
+  status     InstallmentStatus @default(PENDING)
+  paidAt     DateTime?
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseId])
+  @@index([status, dueDate])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  number        String        @unique
+  target        InvoiceTarget
+  purchaseId    String?
+  investmentId  String?
+  amount        Decimal       @db.Decimal(14, 2)
+  status        InvoiceStatus @default(UNPAID)
+  issuedAt      DateTime      @default(now())
+  dueAt         DateTime?
+  bankRef       String?
+  proofKey      String?
+  notes         String?       @db.Text
+
+  purchase   Purchase?   @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  investment Investment? @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  payment    Payment?
+
+  @@index([status])
+}
+
+model Payment {
+  id           String   @id @default(cuid())
+  invoiceId    String   @unique
+  amount       Decimal  @db.Decimal(14, 2)
+  paidAt       DateTime @default(now())
+  recordedById String
+  receiptKey   String?
+
+  invoice    Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  recordedBy User    @relation("PaymentRecorder", fields: [recordedById], references: [id])
+}
+
+model Investment {
+  id             String           @id @default(cuid())
+  investorId     String
+  projectId      String
+  amount         Decimal          @db.Decimal(14, 2)
+  investedAt     DateTime         @default(now())
+  status         InvestmentStatus @default(PENDING)
+  agreementKey   String?
+
+  investor       User              @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  project        InvestmentProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  disbursements  Disbursement[]
+  invoices       Invoice[]
+
+  @@index([investorId])
+  @@index([projectId])
+}
+
+model Disbursement {
+  id           String   @id @default(cuid())
+  investmentId String
+  amount       Decimal  @db.Decimal(14, 2)
+  paidAt       DateTime
+  note         String?
+
+  investment Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id           String       @id @default(cuid())
+  ownerUserId  String
+  kind         DocumentKind
+  title        String
+  r2Key        String
+  createdAt    DateTime     @default(now())
+
+  owner User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+
+  @@index([ownerUserId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  body      String           @db.Text
+  type      NotificationType @default(INFO)
+  url       String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  interest  String?
+  source    String?
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+}
+
+model InspectionBooking {
+  id            String           @id @default(cuid())
+  listingType   ListingType
+  landId        String?
+  housingId     String?
+  name          String
+  phone         String
+  email         String?
+  preferredDate DateTime
+  status        InspectionStatus @default(PENDING)
+  note          String?          @db.Text
+  createdAt     DateTime         @default(now())
+
+  land    LandListing?    @relation(fields: [landId], references: [id], onDelete: SetNull)
+  housing HousingListing? @relation(fields: [housingId], references: [id], onDelete: SetNull)
+}

@@ -1,0 +1,171 @@
+"use server";
+
+import { z } from "zod";
+import { prisma } from "@/lib/db";
+import { requireRole } from "@/lib/rbac";
+import { slugify } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+const paymentPlanSchema = z.array(
+  z.object({
+    months: z.number().int().positive(),
+    deposit: z.number().nonnegative().optional(),
+    monthly: z.number().nonnegative(),
+  })
+);
+
+const landSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(2),
+  location: z.string().min(2),
+  plotSizeSqm: z.coerce.number().int().positive(),
+  priceOutright: z.coerce.number().nonnegative().optional(),
+  priceInstallment: z.coerce.number().nonnegative().optional(),
+  paymentPlans: z.string().optional(),
+  features: z.string().optional(),
+  mapLat: z.coerce.number().optional(),
+  mapLng: z.coerce.number().optional(),
+  galleryKeys: z.string().optional(),
+  brochureKey: z.string().optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "SOLD_OUT", "ARCHIVED"]).default("DRAFT"),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  ogImageKey: z.string().optional(),
+});
+
+function parseJsonOr<T>(raw: string | undefined, fallback: T): T {
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function parseCsv(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+export async function upsertLandListing(formData: FormData) {
+  await requireRole("ADMIN");
+  const parsed = landSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" } as const;
+  const d = parsed.data;
+
+  const plans = parseJsonOr(d.paymentPlans, [] as unknown);
+  const plansValidated = paymentPlanSchema.safeParse(plans);
+
+  const data = {
+    title: d.title,
+    location: d.location,
+    plotSizeSqm: d.plotSizeSqm,
+    priceOutright: d.priceOutright ?? null,
+    priceInstallment: d.priceInstallment ?? null,
+    paymentPlans: plansValidated.success ? plansValidated.data : [],
+    features: parseCsv(d.features),
+    mapLat: d.mapLat ?? null,
+    mapLng: d.mapLng ?? null,
+    galleryKeys: parseCsv(d.galleryKeys),
+    brochureKey: d.brochureKey || null,
+    status: d.status,
+    seoTitle: d.seoTitle || null,
+    seoDescription: d.seoDescription || null,
+    ogImageKey: d.ogImageKey || null,
+  };
+
+  if (d.id) {
+    await prisma.landListing.update({ where: { id: d.id }, data });
+  } else {
+    let slug = slugify(d.title);
+    const existing = await prisma.landListing.findUnique({ where: { slug } });
+    if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    await prisma.landListing.create({ data: { ...data, slug } });
+  }
+
+  revalidatePath("/admin/listings");
+  revalidatePath("/land");
+  redirect("/admin/listings");
+}
+
+const housingSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(2),
+  type: z.enum(["BUNGALOW", "DUPLEX", "TERRACE", "APARTMENT", "MAISONETTE", "PENTHOUSE", "OTHER"]),
+  description: z.string().optional(),
+  floorPlanKeys: z.string().optional(),
+  price: z.coerce.number().nonnegative(),
+  paymentPlans: z.string().optional(),
+  galleryKeys: z.string().optional(),
+  videoUrl: z.string().url().optional().or(z.literal("")),
+  bedrooms: z.coerce.number().int().nonnegative().optional(),
+  bathrooms: z.coerce.number().int().nonnegative().optional(),
+  location: z.string().min(2),
+  brochureKey: z.string().optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "SOLD_OUT", "ARCHIVED"]).default("DRAFT"),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  ogImageKey: z.string().optional(),
+});
+
+export async function upsertHousingListing(formData: FormData) {
+  await requireRole("ADMIN");
+  const parsed = housingSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" } as const;
+  const d = parsed.data;
+
+  const plans = parseJsonOr(d.paymentPlans, [] as unknown);
+  const plansValidated = paymentPlanSchema.safeParse(plans);
+
+  const description = parseJsonOr(d.description, { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: d.description ?? "" }] }] });
+
+  const data = {
+    title: d.title,
+    type: d.type,
+    description,
+    floorPlanKeys: parseCsv(d.floorPlanKeys),
+    price: d.price,
+    paymentPlans: plansValidated.success ? plansValidated.data : [],
+    galleryKeys: parseCsv(d.galleryKeys),
+    videoUrl: d.videoUrl || null,
+    bedrooms: d.bedrooms ?? null,
+    bathrooms: d.bathrooms ?? null,
+    location: d.location,
+    brochureKey: d.brochureKey || null,
+    status: d.status,
+    seoTitle: d.seoTitle || null,
+    seoDescription: d.seoDescription || null,
+    ogImageKey: d.ogImageKey || null,
+  };
+
+  if (d.id) {
+    await prisma.housingListing.update({ where: { id: d.id }, data });
+  } else {
+    let slug = slugify(d.title);
+    const existing = await prisma.housingListing.findUnique({ where: { slug } });
+    if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    await prisma.housingListing.create({ data: { ...data, slug } });
+  }
+
+  revalidatePath("/admin/listings");
+  revalidatePath("/housing");
+  redirect("/admin/listings");
+}
+
+const deleteSchema = z.object({ id: z.string().min(1), kind: z.enum(["LAND", "HOUSING"]) });
+
+export async function deleteListing(formData: FormData) {
+  await requireRole("ADMIN");
+  const parsed = deleteSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { ok: false } as const;
+  if (parsed.data.kind === "LAND") {
+    await prisma.landListing.delete({ where: { id: parsed.data.id } });
+  } else {
+    await prisma.housingListing.delete({ where: { id: parsed.data.id } });
+  }
+  revalidatePath("/admin/listings");
+  revalidatePath("/land");
+  revalidatePath("/housing");
+  return { ok: true } as const;
+}
