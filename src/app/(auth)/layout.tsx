@@ -6,8 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="flex min-h-screen">
       <aside className="hidden w-1/2 bg-gradient-to-br from-teal-900 to-emerald-700 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-10 w-10 place-items-center rounded-lg bg-white text-teal-900 font-bold">{company.slice(0,1)}</span>
-          <span className="text-xl font-semibold">{company}</span>
+         <img src="/ctedgelogo_white.png" alt={`${company} Logo`} className="h-16 w-auto" />
         </Link>
         <div>
           <h2 className="text-3xl font-bold leading-tight">Secure access to your portfolio.</h2>

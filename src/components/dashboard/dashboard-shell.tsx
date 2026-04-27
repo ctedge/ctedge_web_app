@@ -15,14 +15,13 @@ export function DashboardShell({
   user: { name?: string | null; email?: string | null; role?: string };
   children: ReactNode;
 }) {
-  const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "Your Company";
+  const company =  "CT Edge";
   return (
     <div className="flex min-h-screen bg-slate-50">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
         <div className="border-b border-slate-200 px-6 py-5">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-teal-700 text-white font-bold">{company.slice(0, 1)}</span>
-            <span className="text-sm font-semibold text-slate-900">{company}</span>
+          <Link href="/" className="">
+            <img src="/ctedgelogo.png" alt={`${company} logo`} className="h-16 w-auto object-contain" />
           </Link>
           <div className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</div>
         </div>
