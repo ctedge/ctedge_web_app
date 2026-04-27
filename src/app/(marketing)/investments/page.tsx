@@ -17,8 +17,9 @@ export default async function InvestmentsPage() {
 
   return (
     <div>
-      <section className="bg-gradient-to-r from-emerald-700 to-teal-900 text-white">
-        <div className="container-x py-20">
+      <section className="relative bg-gradient-to-r from-emerald-700 to-teal-900 text-white bg-no-repeat bg-cover" style={{ backgroundImage: "url('invest.png')"}}>
+        <div className="absolute inset-0 bg-black/60 z-0" />
+        <div className="container-x py-20 relative z-10">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-200">Invest</p>
           <h1 className="mt-3 max-w-3xl text-4xl font-bold md:text-5xl">Asset-backed real estate investments.</h1>
           <p className="mt-4 max-w-2xl text-teal-100">Earn fixed returns tied directly to real, verifiable property assets.</p>

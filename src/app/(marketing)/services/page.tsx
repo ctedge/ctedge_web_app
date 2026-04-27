@@ -23,8 +23,9 @@ const steps = [
 export default function ServicesPage() {
   return (
     <div>
-      <section className="bg-slate-900 text-white">
-        <div className="container-x py-20">
+      <section className="relative bg-slate-900 text-white bg-no-repeat bg-cover" style={{ backgroundImage: "url('services_hero.png')"}}>
+        <div className="absolute inset-0 bg-black/60 z-0" />
+        <div className="container-x py-20 relative z-10">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-300">Construction</p>
           <h1 className="mt-3 max-w-3xl text-4xl font-bold md:text-5xl">We build what we&apos;ve drawn — to the last brick.</h1>
           <p className="mt-5 max-w-2xl text-lg text-slate-300">
