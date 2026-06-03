@@ -6,7 +6,7 @@ import { presignUpload, buildKey, publicUrl } from "@/lib/r2";
 const schema = z.object({
   filename: z.string().min(1).max(200),
   contentType: z.string().min(1).max(120),
-  prefix: z.enum(["proofs", "documents", "listings", "projects", "investments", "kyc", "brochures"]),
+  prefix: z.enum(["proofs", "documents", "listings", "projects", "investments", "kyc", "brochures", "blog"]),
 });
 
 export async function POST(req: Request) {
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "invalid", issues: parsed.error.flatten() }, { status: 400 });
 
-  const allowedAdminOnly: Array<typeof parsed.data.prefix> = ["listings", "projects", "investments", "brochures", "documents"];
+  const allowedAdminOnly: Array<typeof parsed.data.prefix> = ["listings", "projects", "investments", "brochures", "documents", "blog"];
   if (allowedAdminOnly.includes(parsed.data.prefix) && session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }

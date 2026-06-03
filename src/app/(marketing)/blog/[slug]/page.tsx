@@ -53,7 +53,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <Image src={coverUrl} alt={post.title ?? "Article cover"} width={900} height={500} className="mt-6 rounded-xl w-full object-cover" unoptimized />
       ) : null}
       <div
-        className="prose prose-slate mt-8 max-w-none"
+        className="prose prose-slate mt-8 max-w-none prose-headings:text-slate-900 prose-a:text-teal-700 prose-img:rounded-xl [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:h-auto [&_iframe]:rounded-xl"
         dangerouslySetInnerHTML={{ __html: post.body ?? "" }}
       />
     </article>

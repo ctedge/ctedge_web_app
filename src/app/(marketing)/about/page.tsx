@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { ShieldCheck, Award, Handshake, Users, TrendingUp, Eye, Target, type LucideIcon } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
+import { MetricsStrip } from "@/components/marketing/metrics-strip";
+import { TestimonialsSection } from "@/components/marketing/testimonials-section";
 
 export const metadata: Metadata = { title: "About" };
 
@@ -12,7 +14,7 @@ const values: { title: string; body: string; Icon: LucideIcon }[] = [
   { title: "Growth", body: "Every project is built to compound long-term value for the people it serves.", Icon: TrendingUp },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
   const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "CT Edge Ltd";
   return (
     <>
@@ -38,6 +40,10 @@ export default function AboutPage() {
               CT Edge Ltd combines professional construction expertise, transparent property transactions, and flexible investment opportunities to meet the growing demand for quality real estate in Nigeria.
             </p>
           </div>
+        </section>
+
+        <section className="mt-16 rounded-2xl bg-slate-50 p-8 md:p-10">
+          <MetricsStrip variant="muted" className="bg-transparent" />
         </section>
 
         <section className="mt-20 grid gap-6 md:grid-cols-2">
@@ -83,6 +89,7 @@ export default function AboutPage() {
           </div>
         </section>
       </div>
+      <TestimonialsSection background="muted" />
     </>
   );
 }

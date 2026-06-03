@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PropertyCard } from "@/components/marketing/property-card";
+import { MetricsStrip, COMPANY_METRICS } from "@/components/marketing/metrics-strip";
+import { TestimonialsSection } from "@/components/marketing/testimonials-section";
 import { formatNGN, toNumber } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
@@ -36,21 +38,8 @@ export default async function HomePage() {
             <Link href="/land"><Button size="lg" className="transition-smooth bg-white text-teal-900 hover:bg-teal-50 hover:scale-105">Explore land</Button></Link>
             <Link href="/investments"><Button size="lg" variant="outline" className="transition-smooth border-white/40 bg-transparent text-white hover:bg-white/10 hover:scale-105">Invest with us</Button></Link>
           </div>
-          <div className="mt-10 grid max-w-2xl grid-cols-3 gap-6 border-t border-white/20 pt-8">
-            {[
-              { stat: "500+", label: "Happy owners" },
-              { stat: "12+", label: "Estates & developments" },
-              { stat: "18%", label: "Avg. annual ROI" },
-            ].map((s, idx) => (
-              <div 
-                key={s.label}
-                className="animate-fade-in"
-                style={{ "--animation-delay": `${400 + idx * 100}ms` } as React.CSSProperties}
-              >
-                <div className="text-2xl font-bold text-white md:text-3xl">{s.stat}</div>
-                <div className="text-sm text-teal-100">{s.label}</div>
-              </div>
-            ))}
+          <div className="mt-10 max-w-2xl border-t border-white/20 pt-8">
+            <MetricsStrip variant="dark" />
           </div>
         </div>
       </section>
@@ -87,19 +76,14 @@ export default async function HomePage() {
                 <Link href="/projects"><Button size="lg" variant="outline" className="transition-smooth hover:scale-105">See our projects</Button></Link>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 animate-slide-left">
-              {[
-                { stat: "10+", label: "Years of experience" },
-                { stat: "500+", label: "Families housed" },
-                { stat: "12+", label: "Estates developed" },
-                { stat: "₦5B+", label: "Assets under management" },
-              ].map((s, idx) => (
-                <div 
-                  key={s.label} 
+            <div className="animate-slide-left grid gap-4">
+              {COMPANY_METRICS.map((s, idx) => (
+                <div
+                  key={s.label}
                   className="animate-scale-in rounded-2xl bg-slate-50 p-6"
                   style={{ "--animation-delay": `${idx * 100}ms` } as React.CSSProperties}
                 >
-                  <div className="text-3xl font-bold text-[#011F54]">{s.stat}</div>
+                  <div className="text-3xl font-bold text-[#011F54] md:text-4xl">{s.stat}</div>
                   <div className="mt-1 text-sm text-slate-600">{s.label}</div>
                 </div>
               ))}
@@ -229,6 +213,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <TestimonialsSection background="muted" />
 
       {featuredInvestment ? (
         <section className="container-x py-20">

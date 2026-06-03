@@ -14,6 +14,7 @@ import {
   Inbox,
   CalendarCheck,
   Newspaper,
+  Quote,
   Settings,
 } from "lucide-react";
 
@@ -31,6 +32,7 @@ const nav = [
   { href: "/admin/leads", label: "Leads", icon: <Inbox size={16} /> },
   { href: "/admin/bookings", label: "Inspections", icon: <CalendarCheck size={16} /> },
   { href: "/admin/blog", label: "Blog", icon: <Newspaper size={16} /> },
+  { href: "/admin/testimonials", label: "Testimonials", icon: <Quote size={16} /> },
   { href: "/admin/settings", label: "Settings", icon: <Settings size={16} /> },
 ];
 

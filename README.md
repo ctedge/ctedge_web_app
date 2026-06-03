@@ -18,7 +18,7 @@ A full-stack Next.js 16 app serving property buyers, investors, and admins for a
 ## Prerequisites
 
 - Node.js 20+
-- pnpm 9+
+- npm 10+
 - A Postgres database (local or hosted)
 - Cloudflare R2 bucket + API token
 - SMTP credentials (any provider, or Mailpit/Ethereal for dev)
@@ -28,7 +28,7 @@ A full-stack Next.js 16 app serving property buyers, investors, and admins for a
 
 1. **Install deps**
    ```bash
-   pnpm install
+   npm install
    ```
 
 2. **Configure env**
@@ -39,18 +39,18 @@ A full-stack Next.js 16 app serving property buyers, investors, and admins for a
 
 3. **Create schema**
    ```bash
-   pnpm prisma migrate dev --name init
+   npx prisma migrate dev --name init
    ```
 
 4. **Seed an admin + sample data**
    ```bash
-   pnpm prisma db seed
+   npx prisma db seed
    ```
    The seed reads `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` from `.env`.
 
 5. **Run dev server**
    ```bash
-   pnpm dev
+   npm run dev
    ```
    Visit http://localhost:3000.
 
@@ -58,12 +58,12 @@ A full-stack Next.js 16 app serving property buyers, investors, and admins for a
 
 | Script | Purpose |
 |---|---|
-| `pnpm dev` | Dev server with Turbopack |
-| `pnpm build` | Production build |
-| `pnpm start` | Start production server |
-| `pnpm typecheck` | `tsc --noEmit` |
-| `pnpm lint` | Lint |
-| `pnpm prisma studio` | Inspect DB |
+| `npm run dev` | Dev server with Turbopack |
+| `npm run build` | Production build |
+| `npm start` | Start production server |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | Lint |
+| `npx prisma studio` | Inspect DB |
 
 ## Route groups
 
@@ -100,9 +100,9 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/inst
 1. Import repo into Vercel.
 2. Set every env var from `.env.example` in the project settings.
 3. On first deploy, run one of:
-   - `pnpm prisma migrate deploy` via a Vercel deploy hook / local CLI
-   - `pnpm prisma db push` for non-production
-4. Seed once: `pnpm prisma db seed` with production DB URL.
+   - `npx prisma migrate deploy` via a Vercel deploy hook / local CLI
+   - `npx prisma db push` for non-production
+4. Seed once: `npx prisma db seed` with production DB URL.
 5. Verify cron schedules appear under **Settings → Cron Jobs**.
 
 ## Notes
