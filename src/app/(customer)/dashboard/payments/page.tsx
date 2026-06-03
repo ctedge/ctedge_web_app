@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { PageHeader } from "@/components/dashboard/dashboard-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty } from "@/components/ui/empty";
@@ -17,12 +18,12 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
   const user = await requireRole(["CUSTOMER", "ADMIN"]);
   const { invPage: rawInv, payPage: rawPay } = await searchParams;
 
-  const ownership = {
+  const ownership: Prisma.InvoiceWhereInput = {
     OR: [
       { purchase: { customerId: user.id } },
       { investment: { investorId: user.id } },
     ],
-  } as const;
+  };
 
   const [invoiceTotal, paymentTotal] = await Promise.all([
     prisma.invoice.count({ where: { ...ownership, status: { not: "PAID" } } }),
