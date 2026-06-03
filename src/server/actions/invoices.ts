@@ -198,9 +198,10 @@ export async function markInvoicePaid(formData: FormData) {
   if (invoice.status === "PAID") return { ok: false, message: "Already paid" } as const;
 
   const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "Your Company";
-  const receiptKey = buildKey("receipts", `${invoice.number}.pdf`);
 
+  let receiptKey: string | null = null;
   try {
+    const key = buildKey("receipts", `${invoice.number}.pdf`);
     const pdf = await generateReceiptPdf({
       receiptNumber: `RCPT-${invoice.number}`,
       amount: toNumber(invoice.amount),
@@ -209,9 +210,10 @@ export async function markInvoicePaid(formData: FormData) {
       invoiceNumber: invoice.number,
       companyName: company,
     });
-    await putObject(receiptKey, pdf, "application/pdf");
-  } catch {
-    return { ok: false, message: "Failed to generate receipt. Please try again." } as const;
+    await putObject(key, pdf, "application/pdf");
+    receiptKey = key;
+  } catch (err) {
+    console.error("[invoices] receipt generation/upload failed; marking paid without a stored receipt:", err);
   }
 
   let payment: { id: string };
@@ -235,7 +237,7 @@ export async function markInvoicePaid(formData: FormData) {
       }
 
       const owner = invoice.purchase?.customerId ?? invoice.investment?.investorId;
-      if (owner) {
+      if (owner && receiptKey) {
         await tx.document.create({
           data: { ownerUserId: owner, kind: "RECEIPT", title: `Receipt for ${invoice.number}`, r2Key: receiptKey },
         });
@@ -247,31 +249,40 @@ export async function markInvoicePaid(formData: FormData) {
     if (e instanceof Error && e.message === "already_paid") {
       return { ok: false, message: "Already paid" } as const;
     }
-    throw e;
+    console.error("[invoices] markInvoicePaid transaction failed:", e);
+    return { ok: false, message: "Could not mark paid. Please try again." } as const;
   }
 
   if (ownerId) {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-    const { html, text } = await renderEmail(
-      ReceiptEmail({
-        receiptNumber: `RCPT-${invoice.number}`,
-        amount: formatNGN(toNumber(invoice.amount)),
-        receiptUrl: `${siteUrl}/api/receipts/${invoice.id}`,
-      })
-    );
-    await notify({
-      userId: ownerId,
-      title: "Payment received",
-      body: `We confirmed your payment of ${formatNGN(toNumber(invoice.amount))}.`,
-      type: "PAYMENT",
-      url: `/dashboard/payments`,
-      email: { subject: "Payment received", html, text },
-    });
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+      const { html, text } = await renderEmail(
+        ReceiptEmail({
+          receiptNumber: `RCPT-${invoice.number}`,
+          amount: formatNGN(toNumber(invoice.amount)),
+          receiptUrl: `${siteUrl}/api/receipts/${invoice.id}`,
+        })
+      );
+      await notify({
+        userId: ownerId,
+        title: "Payment received",
+        body: `We confirmed your payment of ${formatNGN(toNumber(invoice.amount))}.`,
+        type: "PAYMENT",
+        url: `/dashboard/payments`,
+        email: { subject: "Payment received", html, text },
+      });
+    } catch (err) {
+      console.error("[invoices] post-payment notification failed:", err);
+    }
   }
 
   revalidatePath("/admin/invoices");
   revalidatePath("/dashboard/properties");
   revalidatePath("/dashboard/payments");
   revalidatePath("/investor/my-investments");
-  return { ok: true, paymentId: payment.id, receiptKey: publicUrl(receiptKey) } as const;
+  return {
+    ok: true,
+    paymentId: payment.id,
+    receiptKey: receiptKey ? publicUrl(receiptKey) : null,
+  } as const;
 }

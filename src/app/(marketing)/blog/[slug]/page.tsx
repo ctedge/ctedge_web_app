@@ -5,23 +5,11 @@ import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { publicUrl } from "@/lib/r2-client";
 
-export const revalidate = 60;
-
-export async function generateStaticParams() {
-  try {
-    const posts = await prisma.blogPost.findMany({
-      where: { published: true },
-      select: { slug: true },
-    });
-    return posts.map((p) => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({ where: { slug, published: true } }).catch(() => null);
+  const post = await prisma.blogPost.findFirst({ where: { slug, published: true } }).catch(() => null);
   if (!post) return {};
   const coverUrl = post.coverKey ? publicUrl(post.coverKey) : undefined;
   return {
@@ -38,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({ where: { slug, published: true } }).catch(() => null);
+  const post = await prisma.blogPost.findFirst({ where: { slug, published: true } }).catch(() => null);
   if (!post) notFound();
 
   const coverUrl = post.coverKey ? publicUrl(post.coverKey) : null;

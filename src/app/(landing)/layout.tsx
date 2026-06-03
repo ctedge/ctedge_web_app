@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
+import { EnquiryFab } from "@/components/enquiry-fab";
 import { CurrentYear } from "@/components/current-year";
 import { getCompanySettings } from "@/lib/company-settings";
 
@@ -26,6 +27,7 @@ export default async function LandingLayout({ children }: { children: React.Reac
       <footer className="mt-auto border-t border-slate-200 bg-slate-50 py-8 text-center text-xs text-slate-500">
         &copy; <CurrentYear /> {company}. <Link href="/" className="hover:underline">Back to main site</Link>
       </footer>
+      <EnquiryFab />
       <WhatsAppFab number={whatsapp} />
     </>
   );

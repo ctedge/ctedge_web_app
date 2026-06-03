@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/dashboard/dashboard-shell";
@@ -17,7 +18,11 @@ export const dynamic = "force-dynamic";
 
 async function markInvoicePaidAction(formData: FormData) {
   "use server";
-  await markInvoicePaid(formData);
+  const result = await markInvoicePaid(formData);
+  if (result.ok) {
+    redirect("/admin/invoices?success=paid");
+  }
+  redirect(`/admin/invoices?error=${encodeURIComponent(result.message ?? "Failed to mark paid")}`);
 }
 
 export default async function AdminInvoicesPage({ searchParams }: { searchParams: Promise<{ status?: string; created?: string; page?: string }> }) {
@@ -52,6 +57,7 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
           created: createdInvoice
             ? `Invoice ${createdInvoice.number} created and sent to the customer.`
             : "Invoice created.",
+          success: "Invoice marked as paid.",
         }}
       />
       <PageHeader title="Invoices" description="Create invoices and confirm bank-transfer payments.">

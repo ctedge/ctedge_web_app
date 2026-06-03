@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "Articles on Nigerian real estate, investment opportunities, and company updates.",
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function BlogIndexPage() {
   const posts = await prisma.blogPost.findMany({
