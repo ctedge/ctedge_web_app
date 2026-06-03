@@ -2,10 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { upsertHousingListing } from "@/server/actions/listings";
 import { MediaUploader } from "@/components/admin/media-uploader";
+import { PaymentPlansEditor } from "@/components/admin/payment-plans-editor";
+import { AmenitiesChecklist } from "@/components/admin/amenities-checklist";
 
 type HousingData = {
   id?: string;
@@ -21,6 +24,7 @@ type HousingData = {
   bathrooms?: number | null;
   location?: string;
   brochureKey?: string | null;
+  features?: string[];
   status?: string;
   seoTitle?: string | null;
   seoDescription?: string | null;
@@ -34,22 +38,24 @@ export function HousingListingForm({ listing }: { listing?: HousingData }) {
   const [brochure, setBrochure] = useState<string>(listing?.brochureKey ?? "");
   const [og, setOg] = useState<string>(listing?.ogImageKey ?? "");
   const [pending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   function onSubmit(formData: FormData) {
-    setError(null);
     formData.set("galleryKeys", gallery.join(","));
     formData.set("floorPlanKeys", floor.join(","));
     if (brochure) formData.set("brochureKey", brochure); else formData.delete("brochureKey");
     if (og) formData.set("ogImageKey", og); else formData.delete("ogImageKey");
     start(async () => {
       const result = await upsertHousingListing(formData);
-      if (result && !result.ok) setError(result.message ?? "Could not save");
-      else router.push("/admin/listings");
+      if (result && !result.ok) {
+        toast.error(result.message ?? "Could not save");
+      } else {
+        toast.success("Listing saved.");
+        router.push("/admin/listings");
+      }
     });
   }
 
-  const descriptionText = typeof listing?.description === "string" ? listing.description : listing?.description ? JSON.stringify(listing.description) : "";
+  const descriptionText = tiptapToText(listing?.description);
 
   return (
     <form action={onSubmit} className="space-y-6 rounded-xl border border-slate-200 bg-white p-6">
@@ -82,8 +88,12 @@ export function HousingListingForm({ listing }: { listing?: HousingData }) {
         <p className="mt-1 text-xs text-slate-500">Plain text is fine; stored as TipTap JSON automatically.</p>
       </Field>
 
-      <Field label="Payment plans (JSON)">
-        <textarea name="paymentPlans" rows={3} defaultValue={listing?.paymentPlans ? JSON.stringify(listing.paymentPlans) : "[]"} className="w-full rounded-md border border-slate-300 bg-white p-3 font-mono text-xs" />
+      <Field label="Features & amenities">
+        <AmenitiesChecklist defaultValue={listing?.features ?? []} />
+      </Field>
+
+      <Field label="Payment plans">
+        <PaymentPlansEditor defaultValue={listing?.paymentPlans as [] | undefined} />
       </Field>
 
       <Field label="Gallery">
@@ -108,7 +118,6 @@ export function HousingListingForm({ listing }: { listing?: HousingData }) {
         <Field label="SEO description"><Input name="seoDescription" defaultValue={listing?.seoDescription ?? ""} /></Field>
       </div>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <div className="flex justify-end gap-3">
         <Button variant="outline" type="button" onClick={() => router.push("/admin/listings")}>Cancel</Button>
@@ -116,6 +125,21 @@ export function HousingListingForm({ listing }: { listing?: HousingData }) {
       </div>
     </form>
   );
+}
+
+type TipTapLike = { type?: string; text?: string; content?: TipTapLike[] };
+
+function tiptapToText(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  const collect = (node: TipTapLike): string => {
+    if (!node) return "";
+    if (node.type === "text") return node.text ?? "";
+    const inner = (node.content ?? []).map(collect).join("");
+    if (node.type === "paragraph" || node.type === "heading" || node.type === "listItem") return inner + "\n";
+    return inner;
+  };
+  return collect(value as TipTapLike).replace(/\n+$/, "");
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

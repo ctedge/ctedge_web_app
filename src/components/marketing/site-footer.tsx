@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MapPin, Phone, Mail } from "lucide-react";
 
 const cols = [
   {
@@ -51,10 +52,10 @@ export function SiteFooter({ company, address, phone, email }: { company: string
           <p className="mt-3 max-w-sm text-sm text-slate-400">
             Real estate, construction, and investment solutions built on trust, quality, and long-term returns.
           </p>
-          <div className="mt-4 space-y-1 text-sm">
-            <p>{address}</p>
-            <p>{phone}</p>
-            <p>{email}</p>
+          <div className="mt-4 space-y-2 text-sm">
+            <p className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />{address}</p>
+            <p className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-teal-400" />{phone}</p>
+            <p className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0 text-teal-400" />{email}</p>
           </div>
         </div>
         {cols.map((c) => (

@@ -19,6 +19,16 @@ export async function reserveListing(formData: FormData) {
   const parsed = reserveSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { ok: false, message: "Invalid reservation." } as const;
 
+  const existing = await prisma.purchase.findFirst({
+    where: {
+      customerId: user.id,
+      listingType: parsed.data.listingType as ListingType,
+      listingId: parsed.data.listingId,
+    },
+    select: { id: true },
+  });
+  if (existing) redirect(`/dashboard/properties/${existing.id}`);
+
   let totalPrice = 0;
   let title = "";
   if (parsed.data.listingType === "LAND") {
@@ -35,15 +45,31 @@ export async function reserveListing(formData: FormData) {
     title = h.title;
   }
 
-  const purchase = await prisma.purchase.create({
-    data: {
-      customerId: user.id,
-      listingType: parsed.data.listingType as ListingType,
-      listingId: parsed.data.listingId,
-      totalPrice,
-      paymentMode: parsed.data.paymentMode as PaymentMode,
-    },
-  });
+  let purchase;
+  try {
+    purchase = await prisma.purchase.create({
+      data: {
+        customerId: user.id,
+        listingType: parsed.data.listingType as ListingType,
+        listingId: parsed.data.listingId,
+        totalPrice,
+        paymentMode: parsed.data.paymentMode as PaymentMode,
+      },
+    });
+  } catch (e: unknown) {
+    if (typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "P2002") {
+      const dup = await prisma.purchase.findFirst({
+        where: {
+          customerId: user.id,
+          listingType: parsed.data.listingType as ListingType,
+          listingId: parsed.data.listingId,
+        },
+        select: { id: true },
+      });
+      if (dup) redirect(`/dashboard/properties/${dup.id}`);
+    }
+    throw e;
+  }
 
   await notifyAdmins({
     title: "New reservation",

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { ShieldCheck, Hammer, TrendingUp, type LucideIcon } from "lucide-react";
+import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = { title: "About" };
 
-const values = [
-  { title: "Integrity first", body: "Clean titles, full documentation, and transparent pricing on every transaction." },
-  { title: "Built to last", body: "Our estates and homes are engineered for decades of value and safety." },
-  { title: "Growth together", body: "When our investors and customers win, we win. That&apos;s the whole point." },
+const values: { title: string; body: string; Icon: LucideIcon }[] = [
+  { title: "Integrity first", body: "Clean titles, full documentation, and transparent pricing on every transaction.", Icon: ShieldCheck },
+  { title: "Built to last", body: "Our estates and homes are engineered for decades of value and safety.", Icon: Hammer },
+  { title: "Growth together", body: "When our investors and customers win, we win. That&apos;s the whole point.", Icon: TrendingUp },
 ];
 
 const milestones = [
@@ -18,20 +20,20 @@ const milestones = [
 export default function AboutPage() {
   const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "Your Company";
   return (
-    <div className="container-x py-20">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">About {company}</p>
-      <h1 className="mt-3 max-w-3xl text-4xl font-bold text-slate-900 md:text-5xl">
-        A decade of building real estate wealth — the honest way.
-      </h1>
-      <p className="mt-5 max-w-2xl text-lg text-slate-600">
-        We design, build, sell, and manage real estate assets for buyers and investors across Nigeria.
-        Our mission is simple: turn every acre into long-term, verifiable value.
-      </p>
-
-      <div className="mt-16 grid gap-6 md:grid-cols-3">
+    <>
+      <PageHero
+        eyebrow={`About ${company}`}
+        title="A decade of building real estate wealth — the honest way."
+        description="We design, build, sell, and manage real estate assets for buyers and investors across Nigeria. Our mission is simple: turn every acre into long-term, verifiable value."
+      />
+      <div className="container-x py-16">
+      <div className="grid gap-6 md:grid-cols-3">
         {values.map((v) => (
           <div key={v.title} className="rounded-xl border border-slate-200 bg-white p-6">
-            <h3 className="text-lg font-semibold text-slate-900">{v.title}</h3>
+            <div className="grid h-11 w-11 place-items-center rounded-xl bg-teal-50 text-teal-700">
+              <v.Icon className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{v.title}</h3>
             <p className="mt-2 text-sm text-slate-600" dangerouslySetInnerHTML={{ __html: v.body }} />
           </div>
         ))}
@@ -49,6 +51,7 @@ export default function AboutPage() {
           ))}
         </ol>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ShieldCheck, CreditCard, TrendingUp, HardHat, LayoutDashboard, MessageCircle, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = {
   title: "Why Choose Us",
@@ -9,65 +11,36 @@ export const metadata: Metadata = {
     "Verified titles, flexible payment plans, asset-backed investments and professional project delivery — see why customers and investors trust us.",
 };
 
-const reasons: {
-  title: string;
-  body: string;
-  icon: React.ReactNode;
-}[] = [
+const reasons: { title: string; body: string; Icon: LucideIcon }[] = [
   {
     title: "Verified titles & clean documentation",
     body: "Every plot and property we sell comes with registered, due-diligence-ready documentation. No disputes, no surprises.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-      </svg>
-    ),
+    Icon: ShieldCheck,
   },
   {
     title: "Flexible, transparent payment plans",
     body: "Outright or structured installment plans — 3, 6, 12 months and beyond. You see every line item before you sign.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5v9a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 18V9Zm4 7.5h3" />
-      </svg>
-    ),
+    Icon: CreditCard,
   },
   {
     title: "Asset-backed investments",
     body: "Every naira you invest is tied to real, identifiable property. Returns are fixed-tenor and tracked on your dashboard.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 17l5-5 4 4 8-9M14 7h7v7" />
-      </svg>
-    ),
+    Icon: TrendingUp,
   },
   {
     title: "Professional project delivery",
     body: "In-house construction, supervision, and handover — no middlemen, no delays we can&apos;t explain. We build what we promise.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V9l7-4 7 4v12M9 21v-6h6v6" />
-      </svg>
-    ),
+    Icon: HardHat,
   },
   {
     title: "End-to-end digital experience",
     body: "Track payments, download receipts, upload proofs, and see project progress — all from your personal dashboard.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5v10.5H3.75zM8.25 21h7.5M12 17.25V21" />
-      </svg>
-    ),
+    Icon: LayoutDashboard,
   },
   {
     title: "Responsive, human support",
     body: "Call, email, or WhatsApp — a real person responds. We&apos;re here before, during, and long after the transaction.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12a9.75 9.75 0 1 1 19.5 0 9.75 9.75 0 0 1-19.5 0Zm6.75-2.25a3 3 0 1 1 4.682 2.488c-.676.449-1.182 1.096-1.182 1.85V15" />
-        <circle cx="12" cy="17.5" r="0.75" fill="currentColor" />
-      </svg>
-    ),
+    Icon: MessageCircle,
   },
 ];
 
@@ -127,17 +100,14 @@ export default function WhyChooseUsPage() {
 
   return (
     <>
+      <PageHero
+        eyebrow={`Why choose ${company}`}
+        title="The real estate partner you can actually trust."
+        description="Thousands of Nigerians are building wealth, owning homes, and investing with confidence through us. Here's what sets us apart."
+      />
       <section className="bg-white">
-        <div className="container-x py-20">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">Why choose {company}</p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-bold text-slate-900 md:text-5xl">
-            The real estate partner you can actually trust.
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg text-slate-600">
-            Thousands of Nigerians are building wealth, owning homes, and investing with confidence through us.
-            Here&apos;s what sets us apart.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+        <div className="container-x py-10">
+          <div className="flex flex-wrap gap-3">
             <Link href="/contact"><Button size="lg">Talk to us</Button></Link>
             <Link href="/projects"><Button size="lg" variant="outline">See our work</Button></Link>
           </div>
@@ -151,7 +121,7 @@ export default function WhyChooseUsPage() {
               <Card key={r.title} className="h-full">
                 <CardContent className="flex h-full flex-col p-6">
                   <div className="grid h-12 w-12 place-items-center rounded-xl bg-teal-50 text-teal-700">
-                    {r.icon}
+                    <r.Icon className="h-6 w-6" />
                   </div>
                   <h3 className="mt-5 text-lg font-semibold text-slate-900">{r.title}</h3>
                   <p className="mt-2 text-sm text-slate-600" dangerouslySetInnerHTML={{ __html: r.body }} />

@@ -1,9 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
+import { CurrentYear } from "@/components/current-year";
+import { getCompanySettings } from "@/lib/company-settings";
 
-export default function LandingLayout({ children }: { children: React.ReactNode }) {
-  const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "CT EDGE";
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "2348000000000";
+export default async function LandingLayout({ children }: { children: React.ReactNode }) {
+  const { name: company, whatsapp, phone } = await getCompanySettings();
   return (
     <>
       <header className="border-b border-slate-200 bg-white">
@@ -11,10 +13,10 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
           <Link href="/" className="flex items-center gap-2">
             {/* <span className="grid h-9 w-9 place-items-center rounded-lg bg-teal-700 text-white font-bold">{company.slice(0, 1)}</span>
             <span className="text-lg font-semibold text-slate-900">{company}</span> */}
-            <img src="/ctedgelogo.png" alt={`${company} logo`} className="h-9 w-auto" />
+            <Image src="/ctedgelogo.png" alt={`${company} logo`} width={120} height={36} className="h-9 w-auto" />
           </Link>
           <div className="text-sm">
-            <a href={`tel:${process.env.NEXT_PUBLIC_COMPANY_PHONE ?? ""}`} className="font-semibold text-teal-700 hover:underline">
+            <a href={`tel:${phone}`} className="font-semibold text-teal-700 hover:underline">
               Call us
             </a>
           </div>
@@ -22,7 +24,7 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
       </header>
       <main className="flex-1">{children}</main>
       <footer className="mt-auto border-t border-slate-200 bg-slate-50 py-8 text-center text-xs text-slate-500">
-        &copy; {new Date().getFullYear()} {company}. <Link href="/" className="hover:underline">Back to main site</Link>
+        &copy; <CurrentYear /> {company}. <Link href="/" className="hover:underline">Back to main site</Link>
       </footer>
       <WhatsAppFab number={whatsapp} />
     </>

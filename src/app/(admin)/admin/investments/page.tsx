@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatNGN, toNumber } from "@/lib/money";
 import { decideInvestment } from "@/server/actions/investments";
 import { format } from "date-fns";
+import { Pagination, PAGE_SIZE, parsePage, buildPageHref } from "@/components/ui/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +17,17 @@ async function decideInvestmentAction(formData: FormData) {
   await decideInvestment(formData);
 }
 
-export default async function AdminInvestmentsPage() {
+export default async function AdminInvestmentsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   await requireRole("ADMIN");
+  const { page: rawPage } = await searchParams;
+  const total = await prisma.investment.count();
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(parsePage(rawPage), totalPages);
   const investments = await prisma.investment.findMany({
     include: { investor: true, project: true, disbursements: true },
     orderBy: { investedAt: "desc" },
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
   });
 
   return (
@@ -65,6 +72,12 @@ export default async function AdminInvestmentsPage() {
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            prevHref={buildPageHref("/admin/investments", { page: page - 1 })}
+            nextHref={buildPageHref("/admin/investments", { page: page + 1 })}
+          />
         </CardContent>
       </Card>
     </>

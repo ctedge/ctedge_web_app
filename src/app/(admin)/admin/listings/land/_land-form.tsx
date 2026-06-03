@@ -2,10 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { upsertLandListing } from "@/server/actions/listings";
 import { MediaUploader } from "@/components/admin/media-uploader";
+import { PaymentPlansEditor } from "@/components/admin/payment-plans-editor";
+import { FeaturesEditor } from "@/components/admin/features-editor";
 
 type LandData = {
   id?: string;
@@ -32,17 +35,19 @@ export function LandListingForm({ listing }: { listing?: LandData }) {
   const [brochure, setBrochure] = useState<string>(listing?.brochureKey ?? "");
   const [og, setOg] = useState<string>(listing?.ogImageKey ?? "");
   const [pending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   function onSubmit(formData: FormData) {
-    setError(null);
     formData.set("galleryKeys", gallery.join(","));
     if (brochure) formData.set("brochureKey", brochure); else formData.delete("brochureKey");
     if (og) formData.set("ogImageKey", og); else formData.delete("ogImageKey");
     start(async () => {
       const result = await upsertLandListing(formData);
-      if (result && !result.ok) setError(result.message ?? "Could not save");
-      else router.push("/admin/listings");
+      if (result && !result.ok) {
+        toast.error(result.message ?? "Could not save");
+      } else {
+        toast.success("Listing saved.");
+        router.push("/admin/listings");
+      }
     });
   }
 
@@ -67,18 +72,14 @@ export function LandListingForm({ listing }: { listing?: LandData }) {
         <Field label="Latitude"><Input name="mapLat" type="number" step="0.000001" defaultValue={listing?.mapLat ?? ""} /></Field>
         <Field label="Longitude"><Input name="mapLng" type="number" step="0.000001" defaultValue={listing?.mapLng ?? ""} /></Field>
       </div>
+      <p className="-mt-2 text-xs text-slate-500">Tip: open Google Maps, right-click the exact spot, and click the coordinates at the top of the menu to copy them.</p>
 
-      <Field label="Features (comma-separated)">
-        <Input name="features" defaultValue={(listing?.features ?? []).join(", ")} placeholder="Gated estate, Paved roads, 24/7 security" />
+      <Field label="Features">
+        <FeaturesEditor defaultValue={listing?.features ?? []} />
       </Field>
 
-      <Field label="Payment plans (JSON)">
-        <textarea
-          name="paymentPlans"
-          rows={3}
-          defaultValue={listing?.paymentPlans ? JSON.stringify(listing.paymentPlans) : "[]"}
-          className="w-full rounded-md border border-slate-300 bg-white p-3 font-mono text-xs"
-        />
+      <Field label="Payment plans">
+        <PaymentPlansEditor defaultValue={listing?.paymentPlans as [] | undefined} />
       </Field>
 
       <Field label="Gallery">
@@ -99,7 +100,6 @@ export function LandListingForm({ listing }: { listing?: LandData }) {
         <Field label="SEO description"><Input name="seoDescription" defaultValue={listing?.seoDescription ?? ""} /></Field>
       </div>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <div className="flex justify-end gap-3">
         <Button variant="outline" type="button" onClick={() => router.push("/admin/listings")}>Cancel</Button>

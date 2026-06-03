@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatNGN, toNumber } from "@/lib/money";
 import { deleteListing } from "@/server/actions/listings";
+import { Pagination, PAGE_SIZE, parsePage, buildPageHref } from "@/components/ui/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +17,35 @@ async function deleteListingAction(formData: FormData) {
   await deleteListing(formData);
 }
 
-export default async function AdminListingsPage() {
+function buildHref(landPage: number, housingPage: number) {
+  return buildPageHref("/admin/listings", { landPage, housingPage });
+}
+
+export default async function AdminListingsPage({ searchParams }: { searchParams: Promise<{ landPage?: string; housingPage?: string }> }) {
   await requireRole("ADMIN");
+  const { landPage: rawLand, housingPage: rawHousing } = await searchParams;
+
+  const [landCount, housingCount] = await Promise.all([
+    prisma.landListing.count(),
+    prisma.housingListing.count(),
+  ]);
+
+  const landTotalPages = Math.max(1, Math.ceil(landCount / PAGE_SIZE));
+  const housingTotalPages = Math.max(1, Math.ceil(housingCount / PAGE_SIZE));
+  const landPage = Math.min(parsePage(rawLand), landTotalPages);
+  const housingPage = Math.min(parsePage(rawHousing), housingTotalPages);
+
   const [land, housing] = await Promise.all([
-    prisma.landListing.findMany({ orderBy: { updatedAt: "desc" } }),
-    prisma.housingListing.findMany({ orderBy: { updatedAt: "desc" } }),
+    prisma.landListing.findMany({
+      orderBy: { updatedAt: "desc" },
+      skip: (landPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.housingListing.findMany({
+      orderBy: { updatedAt: "desc" },
+      skip: (housingPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
   ]);
 
   return (
@@ -31,7 +56,7 @@ export default async function AdminListingsPage() {
       </PageHeader>
 
       <Card>
-        <CardHeader><CardTitle>Land ({land.length})</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Land ({landCount})</CardTitle></CardHeader>
         <CardContent className="p-0">
           {land.length === 0 ? (
             <p className="p-6 text-sm text-slate-500">No land listings yet.</p>
@@ -59,11 +84,17 @@ export default async function AdminListingsPage() {
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={landPage}
+            totalPages={landTotalPages}
+            prevHref={buildHref(landPage - 1, housingPage)}
+            nextHref={buildHref(landPage + 1, housingPage)}
+          />
         </CardContent>
       </Card>
 
       <Card className="mt-8">
-        <CardHeader><CardTitle>Housing ({housing.length})</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Housing ({housingCount})</CardTitle></CardHeader>
         <CardContent className="p-0">
           {housing.length === 0 ? (
             <p className="p-6 text-sm text-slate-500">No housing listings yet.</p>
@@ -91,8 +122,15 @@ export default async function AdminListingsPage() {
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={housingPage}
+            totalPages={housingTotalPages}
+            prevHref={buildHref(landPage, housingPage - 1)}
+            nextHref={buildHref(landPage, housingPage + 1)}
+          />
         </CardContent>
       </Card>
     </>
   );
 }
+

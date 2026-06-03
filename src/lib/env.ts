@@ -18,7 +18,6 @@ export const env = createEnv({
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     SMTP_FROM: z.string().optional(),
-    SANITY_API_READ_TOKEN: z.string().optional(),
     CRON_SECRET: z.string().optional(),
     SEED_ADMIN_EMAIL: z.string().email().optional(),
     SEED_ADMIN_PASSWORD: z.string().optional(),
@@ -35,8 +34,6 @@ export const env = createEnv({
     NEXT_PUBLIC_BANK_ACCOUNT_NAME: z.string().default("Your Company Ltd"),
     NEXT_PUBLIC_BANK_ACCOUNT_NUMBER: z.string().default("0000000000"),
     NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY: z.string().optional(),
-    NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),
-    NEXT_PUBLIC_SANITY_DATASET: z.string().default("production"),
   },
   experimental__runtimeEnv: {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
@@ -50,8 +47,6 @@ export const env = createEnv({
     NEXT_PUBLIC_BANK_ACCOUNT_NAME: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME,
     NEXT_PUBLIC_BANK_ACCOUNT_NUMBER: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER,
     NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY,
-    NEXT_PUBLIC_SANITY_PROJECT_ID: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-    NEXT_PUBLIC_SANITY_DATASET: process.env.NEXT_PUBLIC_SANITY_DATASET,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION || process.env.NODE_ENV === "test",
 });

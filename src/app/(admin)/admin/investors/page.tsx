@@ -9,6 +9,7 @@ import { Empty } from "@/components/ui/empty";
 import { formatNGN, toNumber } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { decideKyc } from "@/server/actions/kyc";
+import { Pagination, PAGE_SIZE, parsePage, buildPageHref } from "@/components/ui/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,12 @@ async function decideKycAction(formData: FormData) {
   await decideKyc(formData);
 }
 
-export default async function AdminInvestorsPage() {
+export default async function AdminInvestorsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   await requireRole("ADMIN");
+  const { page: rawPage } = await searchParams;
+  const total = await prisma.user.count({ where: { role: "INVESTOR" } });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(parsePage(rawPage), totalPages);
   const investors = await prisma.user.findMany({
     where: { role: "INVESTOR" },
     include: {
@@ -26,6 +31,8 @@ export default async function AdminInvestorsPage() {
       investments: true,
     },
     orderBy: { createdAt: "desc" },
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
   });
 
   return (
@@ -45,19 +52,22 @@ export default async function AdminInvestorsPage() {
                   return (
                     <TR key={inv.id}>
                       <TD>
-                        <div className="font-medium">{inv.name ?? "—"}</div>
+                        <Link href={`/admin/investors/${inv.id}`} className="font-medium text-slate-900 hover:text-teal-700 hover:underline">{inv.name ?? "—"}</Link>
                         <div className="text-xs text-slate-500">{inv.email}</div>
                       </TD>
                       <TD>{inv.phone ?? "—"}</TD>
                       <TD><Badge variant={kyc === "APPROVED" ? "success" : kyc === "PENDING" ? "warning" : kyc === "REJECTED" ? "danger" : "secondary"}>{kyc}</Badge></TD>
                       <TD>{formatNGN(total)}</TD>
                       <TD className="flex items-center justify-end gap-2">
+                        <Link href={`/admin/investors/${inv.id}`}>
+                          <Button size="sm" variant="outline">View KYC</Button>
+                        </Link>
                         {kyc === "PENDING" ? (
                           <>
                             <form action={decideKycAction}>
                               <input type="hidden" name="userId" value={inv.id} />
                               <input type="hidden" name="decision" value="APPROVED" />
-                              <Button size="sm" variant="outline" type="submit">Approve</Button>
+                              <Button size="sm" type="submit">Approve</Button>
                             </form>
                             <form action={decideKycAction}>
                               <input type="hidden" name="userId" value={inv.id} />
@@ -65,9 +75,7 @@ export default async function AdminInvestorsPage() {
                               <Button size="sm" variant="ghost" type="submit">Reject</Button>
                             </form>
                           </>
-                        ) : (
-                          <Link href={`/admin/investors/${inv.id}`} className="text-sm font-semibold text-teal-700 hover:underline">Open</Link>
-                        )}
+                        ) : null}
                       </TD>
                     </TR>
                   );
@@ -75,6 +83,12 @@ export default async function AdminInvestorsPage() {
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            prevHref={buildPageHref("/admin/investors", { page: page - 1 })}
+            nextHref={buildPageHref("/admin/investors", { page: page + 1 })}
+          />
         </CardContent>
       </Card>
     </>

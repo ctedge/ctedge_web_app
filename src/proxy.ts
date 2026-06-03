@@ -9,11 +9,12 @@ const studioPrefix = "/studio";
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const isPostLogin = pathname === "/post-login";
   const isAdminRoute = pathname.startsWith(adminPrefix) || pathname.startsWith(studioPrefix);
   const isCustomerRoute = pathname.startsWith(customerPrefix);
   const isInvestorRoute = pathname.startsWith(investorPrefix);
 
-  if (!isAdminRoute && !isCustomerRoute && !isInvestorRoute) {
+  if (!isPostLogin && !isAdminRoute && !isCustomerRoute && !isInvestorRoute) {
     return NextResponse.next();
   }
 
@@ -26,11 +27,13 @@ export async function proxy(req: NextRequest) {
   if (!token) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("callbackUrl", pathname);
+    if (!isPostLogin) url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
 
   const role = (token as { role?: string }).role;
+
+  if (isPostLogin) return roleRedirect(req, role);
   if (isAdminRoute && role !== "ADMIN") return roleRedirect(req, role);
   if (isInvestorRoute && role !== "INVESTOR" && role !== "ADMIN") return roleRedirect(req, role);
   if (isCustomerRoute && role !== "CUSTOMER" && role !== "ADMIN") return roleRedirect(req, role);
@@ -47,5 +50,5 @@ function roleRedirect(req: NextRequest, role?: string) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/investor/:path*", "/studio/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/investor/:path*", "/studio/:path*", "/post-login"],
 };

@@ -30,6 +30,22 @@ export async function investInProject(formData: FormData) {
   if (parsed.data.amount < toNumber(project.minAmount)) {
     return { ok: false, message: `Minimum investment is ${formatNGN(toNumber(project.minAmount))}` } as const;
   }
+  const available = toNumber(project.totalTarget) - toNumber(project.totalRaised);
+  if (parsed.data.amount > available) {
+    return { ok: false, message: `Maximum available is ${formatNGN(available)}` } as const;
+  }
+
+  const existing = await prisma.investment.findFirst({
+    where: {
+      investorId: user.id,
+      projectId: project.id,
+      status: { in: ["PENDING", "APPROVED"] },
+    },
+    select: { id: true },
+  });
+  if (existing) {
+    return { ok: false, message: "You already have a pending or approved investment in this project." } as const;
+  }
 
   const investment = await prisma.investment.create({
     data: {
@@ -68,16 +84,21 @@ export async function decideInvestment(formData: FormData) {
   });
   if (!investment) return { ok: false, message: "Not found" } as const;
 
-  await prisma.investment.update({
-    where: { id: investment.id },
-    data: { status: parsed.data.decision },
+  await prisma.$transaction(async (tx) => {
+    await tx.investment.update({
+      where: { id: investment.id },
+      data: { status: parsed.data.decision },
+    });
+
+    if (parsed.data.decision === "APPROVED") {
+      await tx.investmentProject.update({
+        where: { id: investment.projectId },
+        data: { totalRaised: { increment: investment.amount } },
+      });
+    }
   });
 
   if (parsed.data.decision === "APPROVED") {
-    await prisma.investmentProject.update({
-      where: { id: investment.projectId },
-      data: { totalRaised: { increment: investment.amount } },
-    });
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const { html, text } = await renderEmail(
       InvestmentApprovedEmail({

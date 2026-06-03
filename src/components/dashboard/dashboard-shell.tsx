@@ -1,10 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { signOut } from "@/lib/auth";
+import { getCompanySettings } from "@/lib/company-settings";
 
 export type NavItem = { href: string; label: string; icon?: ReactNode };
 
-export function DashboardShell({
+export async function DashboardShell({
   title,
   nav,
   user,
@@ -15,13 +17,13 @@ export function DashboardShell({
   user: { name?: string | null; email?: string | null; role?: string };
   children: ReactNode;
 }) {
-  const company =  "CT Edge";
+  const { name: company } = await getCompanySettings();
   return (
     <div className="flex min-h-screen bg-slate-50">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
         <div className="border-b border-slate-200 px-6 py-5">
           <Link href="/" className="">
-            <img src="/ctedgelogo.png" alt={`${company} logo`} className="h-16 w-auto object-contain" />
+            <Image src="/ctedgelogo.png" alt={`${company} logo`} width={128} height={64} className="h-16 w-auto object-contain" />
           </Link>
           <div className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</div>
         </div>
@@ -51,7 +53,10 @@ export function DashboardShell({
           </div>
           <nav className="mt-3 flex flex-wrap gap-3 text-sm">
             {nav.map((n) => (
-              <Link key={n.href} href={n.href} className="rounded bg-slate-100 px-3 py-1 text-slate-700">{n.label}</Link>
+              <Link key={n.href} href={n.href} className="flex items-center gap-1 rounded bg-slate-100 px-3 py-1 text-slate-700">
+                {n.icon}
+                <span>{n.label}</span>
+              </Link>
             ))}
           </nav>
         </header>

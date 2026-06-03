@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function ProofLink({ proofKey }: { proofKey: string }) {
+export function ProofLink({ proofKey, label = "View proof" }: { proofKey: string; label?: string }) {
   const [loading, setLoading] = useState(false);
   async function open() {
     setLoading(true);
@@ -19,5 +19,5 @@ export function ProofLink({ proofKey }: { proofKey: string }) {
       setLoading(false);
     }
   }
-  return <Button size="sm" variant="outline" onClick={open} disabled={loading}>{loading ? "…" : "View proof"}</Button>;
+  return <Button size="sm" variant="outline" onClick={open} disabled={loading}>{loading ? "…" : label}</Button>;
 }

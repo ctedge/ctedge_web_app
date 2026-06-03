@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { publicUrl } from "@/lib/r2-client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getCompanySettings } from "@/lib/company-settings";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamic = "force-dynamic";
@@ -45,12 +46,17 @@ export default async function LandDetailPage({ params }: Props) {
   if (!listing || listing.status !== "PUBLISHED") notFound();
 
   const plans = (listing.paymentPlans as Array<{ months: number; deposit?: number; monthly?: number; label?: string }>) ?? [];
+  const settings = await getCompanySettings();
   const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY;
-  const mapsSrc = listing.mapLat && listing.mapLng
+  const mapsSrc = listing.mapLat != null && listing.mapLng != null
     ? mapsKey
       ? `https://www.google.com/maps/embed/v1/place?key=${mapsKey}&q=${listing.mapLat},${listing.mapLng}`
       : `https://www.google.com/maps?q=${listing.mapLat},${listing.mapLng}&output=embed`
-    : null;
+    : listing.location
+      ? mapsKey
+        ? `https://www.google.com/maps/embed/v1/place?key=${mapsKey}&q=${encodeURIComponent(listing.location)}`
+        : `https://www.google.com/maps?q=${encodeURIComponent(listing.location)}&output=embed`
+      : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -119,7 +125,20 @@ export default async function LandDetailPage({ params }: Props) {
             <Card>
               <CardHeader><CardTitle>Location</CardTitle></CardHeader>
               <CardContent className="p-0">
-                <iframe src={mapsSrc} className="h-80 w-full rounded-b-xl" loading="lazy" title="Map" />
+                <iframe src={mapsSrc} className="h-80 w-full" loading="lazy" title="Map" />
+                {listing.mapLat != null && listing.mapLng != null ? (
+                  <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-xs text-slate-500">
+                    <span>Coordinates: {listing.mapLat.toFixed(6)}, {listing.mapLng.toFixed(6)}</span>
+                    <a
+                      href={`https://www.google.com/maps?q=${listing.mapLat},${listing.mapLng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-teal-700 hover:underline"
+                    >
+                      Open in Google Maps ↗
+                    </a>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           ) : null}
@@ -142,7 +161,7 @@ export default async function LandDetailPage({ params }: Props) {
             <CardContent className="py-4 text-sm text-slate-600">
               Prefer WhatsApp?{" "}
               <a
-                href={`https://wa.me/${(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "").replace(/[^\d]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in ${listing.title}.`)}`}
+                href={`https://wa.me/${settings.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in ${listing.title}.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-teal-700 hover:underline"

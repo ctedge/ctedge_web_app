@@ -7,6 +7,15 @@ import { sendMail } from "@/lib/mailer";
 import { revalidatePath } from "next/cache";
 import { Role } from "@prisma/client";
 
+function escapeHtml(str: string) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 const schema = z.object({
   audience: z.enum(["ALL", "CUSTOMERS", "INVESTORS"]),
   title: z.string().min(1),
@@ -47,7 +56,7 @@ export async function broadcastNotification(formData: FormData) {
           sendMail({
             to: r.email,
             subject: d.title,
-            html: `<p>${d.body}</p>${d.url ? `<p><a href="${d.url}">Open</a></p>` : ""}`,
+            html: `<p>${escapeHtml(d.body)}</p>${d.url ? `<p><a href="${escapeHtml(d.url)}">Open</a></p>` : ""}`,
             text: `${d.body}${d.url ? `\n\n${d.url}` : ""}`,
           }).catch(() => null)
         )

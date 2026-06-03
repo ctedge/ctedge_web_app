@@ -10,6 +10,7 @@ import { formatNGN, toNumber } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { UploadProof } from "./upload-proof";
+import { CreatePurchaseTicketForm } from "./create-ticket-form";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,14 @@ export default async function PurchaseDetailPage({ params }: { params: Promise<{
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="mt-8">
+        <CardHeader><CardTitle>Open a payment ticket</CardTitle></CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-slate-600">Self-service: tell us how much you want to pay, then transfer to the account below and confirm.</p>
+          <CreatePurchaseTicketForm purchaseId={purchase.id} />
         </CardContent>
       </Card>
 

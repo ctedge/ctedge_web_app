@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Home, HardHat, TrendingUp, ShieldCheck, Wallet, MonitorSmartphone, type LucideIcon } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -119,7 +120,7 @@ export default async function HomePage() {
               >
                 <CardContent className="flex h-full flex-col p-6">
                   <div className="grid h-12 w-12 place-items-center rounded-xl bg-teal-50 text-teal-700 transition-smooth group-hover:scale-110">
-                    {svc.icon}
+                    <svc.Icon className="h-6 w-6" />
                   </div>
                   <h3 className="mt-5 text-lg font-semibold text-slate-900">{svc.title}</h3>
                   <p className="mt-2 flex-1 text-sm text-slate-600">{svc.description}</p>
@@ -219,7 +220,7 @@ export default async function HomePage() {
                 style={{ "--animation-delay": `${idx * 100}ms` } as React.CSSProperties}
               >
                 <div className="grid h-11 w-11 place-items-center rounded-xl bg-teal-50 text-teal-700 transition-smooth">
-                  {w.icon}
+                  <w.Icon className="h-6 w-6" />
                 </div>
                 <h3 className="mt-5 text-base font-semibold text-slate-900">{w.title}</h3>
                 <p className="mt-2 text-sm text-slate-600">{w.body}</p>
@@ -291,7 +292,7 @@ const services: {
   description: string;
   bullets: string[];
   href: string;
-  icon: React.ReactNode;
+  Icon: LucideIcon;
 }[] = [
   {
     title: "Real Estate Sales",
@@ -303,11 +304,7 @@ const services: {
       "Outright or installment options",
     ],
     href: "/land",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-9.5Z" />
-      </svg>
-    ),
+    Icon: Home,
   },
   {
     title: "Construction Services",
@@ -319,11 +316,7 @@ const services: {
       "Project management & supervision",
     ],
     href: "/services",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V9l7-4 7 4v12M9 21v-6h6v6M9 13h6" />
-      </svg>
-    ),
+    Icon: HardHat,
   },
   {
     title: "Real Estate Investment",
@@ -335,49 +328,29 @@ const services: {
       "Dashboard tracking & updates",
     ],
     href: "/investments",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 17l5-5 4 4 8-9M14 7h7v7" />
-      </svg>
-    ),
+    Icon: TrendingUp,
   },
 ];
 
-const whyUs: { title: string; body: string; icon: React.ReactNode }[] = [
+const whyUs: { title: string; body: string; Icon: LucideIcon }[] = [
   {
     title: "Verified titles",
     body: "Registered, due-diligence-ready documentation on every plot and property.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-      </svg>
-    ),
+    Icon: ShieldCheck,
   },
   {
     title: "Flexible payment plans",
     body: "Outright or structured installments — 3, 6, 12 months and beyond.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5v9a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 18V9Zm4 7.5h3" />
-      </svg>
-    ),
+    Icon: Wallet,
   },
   {
     title: "Asset-backed returns",
     body: "Every investment is tied to real, identifiable property with transparent ROI.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 17l5-5 4 4 8-9M14 7h7v7" />
-      </svg>
-    ),
+    Icon: TrendingUp,
   },
   {
     title: "Digital-first experience",
     body: "Track payments, download receipts, and see project progress from your dashboard.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5v10.5H3.75zM8.25 21h7.5M12 17.25V21" />
-      </svg>
-    ),
+    Icon: MonitorSmartphone,
   },
 ];

@@ -15,7 +15,7 @@ export default async function EditHousingPage({ params }: { params: Promise<{ id
   return (
     <>
       <PageHeader title={`Edit · ${listing.title}`} description="Update details and publish changes." />
-      <HousingListingForm listing={listing} />
+      <HousingListingForm listing={{ ...listing, price: listing.price.toNumber() }} />
     </>
   );
 }

@@ -18,6 +18,81 @@ const attachProofSchema = z.object({
   proofKey: z.string().min(1),
 });
 
+const userTicketSchema = z.object({
+  amount: z.coerce.number().positive(),
+  notes: z.string().max(500).optional(),
+});
+
+export async function createPurchasePaymentTicket(formData: FormData) {
+  const user = await requireUser();
+  const purchaseId = String(formData.get("purchaseId") ?? "");
+  if (!purchaseId) return { ok: false, message: "Missing purchase" } as const;
+  const parsed = userTicketSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" } as const;
+
+  const purchase = await prisma.purchase.findUnique({ where: { id: purchaseId } });
+  if (!purchase) return { ok: false, message: "Purchase not found" } as const;
+  if (purchase.customerId !== user.id && user.role !== "ADMIN") {
+    return { ok: false, message: "Forbidden" } as const;
+  }
+
+  const invoice = await prisma.invoice.create({
+    data: {
+      number: generateInvoiceNumber(),
+      target: "PURCHASE",
+      purchaseId: purchase.id,
+      amount: parsed.data.amount,
+      notes: parsed.data.notes,
+    },
+  });
+
+  await notifyAdmins({
+    title: "New payment ticket",
+    body: `${user.name ?? user.email} opened a payment ticket for ${formatNGN(parsed.data.amount)}.`,
+    type: "PAYMENT",
+    url: "/admin/invoices",
+  });
+
+  revalidatePath("/dashboard/payments");
+  revalidatePath(`/dashboard/properties/${purchase.id}`);
+  return { ok: true, id: invoice.id } as const;
+}
+
+export async function createInvestmentPaymentTicket(formData: FormData) {
+  const user = await requireUser();
+  const investmentId = String(formData.get("investmentId") ?? "");
+  if (!investmentId) return { ok: false, message: "Missing investment" } as const;
+  const parsed = userTicketSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" } as const;
+
+  const investment = await prisma.investment.findUnique({ where: { id: investmentId } });
+  if (!investment) return { ok: false, message: "Investment not found" } as const;
+  if (investment.investorId !== user.id && user.role !== "ADMIN") {
+    return { ok: false, message: "Forbidden" } as const;
+  }
+
+  const invoice = await prisma.invoice.create({
+    data: {
+      number: generateInvoiceNumber(),
+      target: "INVESTMENT",
+      investmentId: investment.id,
+      amount: parsed.data.amount,
+      notes: parsed.data.notes,
+    },
+  });
+
+  await notifyAdmins({
+    title: "New payment ticket",
+    body: `${user.name ?? user.email} opened a payment ticket for ${formatNGN(parsed.data.amount)}.`,
+    type: "PAYMENT",
+    url: "/admin/invoices",
+  });
+
+  revalidatePath("/dashboard/payments");
+  revalidatePath(`/investor/my-investments/${investment.id}`);
+  return { ok: true, id: invoice.id } as const;
+}
+
 export async function attachProof(formData: FormData) {
   const user = await requireUser();
   const parsed = attachProofSchema.safeParse(Object.fromEntries(formData.entries()));
@@ -45,6 +120,7 @@ export async function attachProof(formData: FormData) {
   });
 
   revalidatePath(`/dashboard/properties`);
+  revalidatePath(`/dashboard/payments`);
   revalidatePath(`/investor/my-investments`);
   return { ok: true } as const;
 }
@@ -54,7 +130,9 @@ const createInvoiceSchema = z.object({
   purchaseId: z.string().optional(),
   investmentId: z.string().optional(),
   amount: z.coerce.number().positive(),
-  dueAt: z.string().optional(),
+  dueAt: z.string().optional().refine((value) => !value || !Number.isNaN(new Date(value).valueOf()), {
+    message: "Invalid due date",
+  }),
   notes: z.string().max(500).optional(),
 });
 
@@ -120,39 +198,59 @@ export async function markInvoicePaid(formData: FormData) {
   if (invoice.status === "PAID") return { ok: false, message: "Already paid" } as const;
 
   const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "Your Company";
-  const pdf = await generateReceiptPdf({
-    receiptNumber: `RCPT-${invoice.number}`,
-    amount: toNumber(invoice.amount),
-    payerName: "",
-    issuedAt: new Date(),
-    invoiceNumber: invoice.number,
-    companyName: company,
-  });
   const receiptKey = buildKey("receipts", `${invoice.number}.pdf`);
-  await putObject(receiptKey, pdf, "application/pdf");
 
-  const payment = await prisma.payment.create({
-    data: {
-      invoiceId: invoice.id,
-      amount: invoice.amount,
-      recordedById: admin.id,
-      receiptKey,
-    },
-  });
-  await prisma.invoice.update({ where: { id: invoice.id }, data: { status: "PAID" } });
-
-  if (invoice.purchase) {
-    const next = invoice.purchase.installments.find((i) => i.status !== "PAID");
-    if (next) {
-      await prisma.installment.update({ where: { id: next.id }, data: { status: "PAID", paidAt: new Date() } });
-    }
+  try {
+    const pdf = await generateReceiptPdf({
+      receiptNumber: `RCPT-${invoice.number}`,
+      amount: toNumber(invoice.amount),
+      payerName: "",
+      issuedAt: new Date(),
+      invoiceNumber: invoice.number,
+      companyName: company,
+    });
+    await putObject(receiptKey, pdf, "application/pdf");
+  } catch {
+    return { ok: false, message: "Failed to generate receipt. Please try again." } as const;
   }
 
-  const ownerId = invoice.purchase?.customerId ?? invoice.investment?.investorId;
+  let payment: { id: string };
+  let ownerId: string | null | undefined;
+
+  try {
+    ({ payment, ownerId } = await prisma.$transaction(async (tx) => {
+      const current = await tx.invoice.findUnique({ where: { id: invoice.id }, select: { status: true } });
+      if (current?.status === "PAID") throw new Error("already_paid");
+
+      const p = await tx.payment.create({
+        data: { invoiceId: invoice.id, amount: invoice.amount, recordedById: admin.id, receiptKey },
+      });
+      await tx.invoice.update({ where: { id: invoice.id }, data: { status: "PAID" } });
+
+      if (invoice.purchase) {
+        const next = invoice.purchase.installments.find((i) => i.status !== "PAID");
+        if (next) {
+          await tx.installment.update({ where: { id: next.id }, data: { status: "PAID", paidAt: new Date() } });
+        }
+      }
+
+      const owner = invoice.purchase?.customerId ?? invoice.investment?.investorId;
+      if (owner) {
+        await tx.document.create({
+          data: { ownerUserId: owner, kind: "RECEIPT", title: `Receipt for ${invoice.number}`, r2Key: receiptKey },
+        });
+      }
+
+      return { payment: p, ownerId: owner };
+    }, { isolationLevel: "Serializable" }));
+  } catch (e) {
+    if (e instanceof Error && e.message === "already_paid") {
+      return { ok: false, message: "Already paid" } as const;
+    }
+    throw e;
+  }
+
   if (ownerId) {
-    await prisma.document.create({
-      data: { ownerUserId: ownerId, kind: "RECEIPT", title: `Receipt for ${invoice.number}`, r2Key: receiptKey },
-    });
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const { html, text } = await renderEmail(
       ReceiptEmail({
@@ -173,6 +271,7 @@ export async function markInvoicePaid(formData: FormData) {
 
   revalidatePath("/admin/invoices");
   revalidatePath("/dashboard/properties");
+  revalidatePath("/dashboard/payments");
   revalidatePath("/investor/my-investments");
   return { ok: true, paymentId: payment.id, receiptKey: publicUrl(receiptKey) } as const;
 }

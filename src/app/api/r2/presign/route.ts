@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { presignUpload, buildKey, publicUrl, signedGetUrl } from "@/lib/r2";
+import { presignUpload, buildKey, publicUrl } from "@/lib/r2";
 
 const schema = z.object({
   filename: z.string().min(1).max(200),
@@ -24,13 +24,10 @@ export async function POST(req: Request) {
 
   const key = buildKey(parsed.data.prefix, parsed.data.filename);
   try {
-    const [url, signedUrl] = await Promise.all([
-      presignUpload(key, parsed.data.contentType),
-      signedGetUrl(key, 60 * 60 * 24 * 7 * 10000),
-    ]);
-    return NextResponse.json({ url, key, signedUrl, publicUrl: publicUrl(key) });
+    const url = await presignUpload(key, parsed.data.contentType);
+    return NextResponse.json({ url, key, publicUrl: publicUrl(key) });
   } catch (e) {
-    console.error(e);
+    console.error("[presign] Failed to generate presigned URL", e);
     return NextResponse.json({ error: "presign_failed" }, { status: 500 });
   }
 }

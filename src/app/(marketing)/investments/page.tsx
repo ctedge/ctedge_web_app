@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TrendingUp, Clock, Wallet } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { currentUser } from "@/lib/rbac";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatNGN, toNumber } from "@/lib/money";
@@ -10,10 +12,13 @@ export const metadata: Metadata = { title: "Investment Opportunities" };
 export const dynamic = "force-dynamic";
 
 export default async function InvestmentsPage() {
-  const projects = await prisma.investmentProject.findMany({
-    where: { status: "OPEN" },
-    orderBy: { createdAt: "desc" },
-  });
+  const [projects, user] = await Promise.all([
+    prisma.investmentProject.findMany({
+      where: { status: "OPEN" },
+      orderBy: { createdAt: "desc" },
+    }),
+    currentUser(),
+  ]);
 
   return (
     <div>
@@ -23,9 +28,11 @@ export default async function InvestmentsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-200">Invest</p>
           <h1 className="mt-3 max-w-3xl text-4xl font-bold md:text-5xl">Asset-backed real estate investments.</h1>
           <p className="mt-4 max-w-2xl text-teal-100">Earn fixed returns tied directly to real, verifiable property assets.</p>
-          <div className="mt-6">
-            <Link href="/register?role=investor"><Button size="lg" className="bg-white text-teal-900 hover:bg-teal-50">Open investor account</Button></Link>
-          </div>
+          {!user ? (
+            <div className="mt-6">
+              <Link href="/register?role=investor"><Button size="lg" className="bg-white text-teal-900 hover:bg-teal-50">Become an investor</Button></Link>
+            </div>
+          ) : null}
         </div>
       </section>
       <section className="container-x py-20">
@@ -46,8 +53,8 @@ export default async function InvestmentsPage() {
                       <h3 className="mt-3 text-xl font-semibold text-slate-900">{p.title}</h3>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-teal-700">{p.roiPercent}%</div>
-                      <div className="text-xs text-slate-500">ROI / {p.durationMonths}mo</div>
+                      <div className="flex items-center justify-end gap-1 text-2xl font-bold text-teal-700"><TrendingUp className="h-5 w-5" />{p.roiPercent}%</div>
+                      <div className="mt-1 flex items-center justify-end gap-1 text-xs text-slate-500"><Clock className="h-3 w-3" />ROI / {p.durationMonths}mo</div>
                     </div>
                   </div>
                   <p className="mt-3 line-clamp-3 text-sm text-slate-600">{p.description}</p>
@@ -61,8 +68,8 @@ export default async function InvestmentsPage() {
                     </div>
                   </div>
                   <div className="mt-5 flex items-center justify-between">
-                    <div className="text-sm text-slate-500">Min. from <span className="font-semibold text-slate-900">{formatNGN(toNumber(p.minAmount))}</span></div>
-                    <Link href="/investor"><Button>Invest</Button></Link>
+                    <div className="flex items-center gap-1.5 text-sm text-slate-500"><Wallet className="h-4 w-4 text-teal-700" />Min. from <span className="font-semibold text-slate-900">{formatNGN(toNumber(p.minAmount))}</span></div>
+                    <Link href={`/investments/${p.slug}`}><Button>Invest</Button></Link>
                   </div>
                 </div>
               );

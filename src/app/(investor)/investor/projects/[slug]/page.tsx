@@ -61,6 +61,16 @@ export default async function InvestmentProjectPage({ params }: { params: Promis
               </CardContent>
             </Card>
           ) : null}
+
+          <Card>
+            <CardHeader><CardTitle>Bank transfer details</CardTitle></CardHeader>
+            <CardContent className="grid gap-1 text-sm text-slate-700">
+              <div><span className="text-slate-500">Bank:</span> {process.env.NEXT_PUBLIC_BANK_NAME}</div>
+              <div><span className="text-slate-500">Account name:</span> {process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME}</div>
+              <div><span className="text-slate-500">Account number:</span> {process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER}</div>
+              <p className="mt-2 text-xs text-slate-500">After submitting your investment, transfer the agreed amount to this account. Admin will issue an invoice — use that invoice number as your transfer reference, then upload your proof of payment from the investment page.</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </>

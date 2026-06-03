@@ -8,7 +8,7 @@ import { addDays, startOfDay, endOfDay } from "date-fns";
 
 function isAuthorized(req: Request) {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return true; // allow in dev
+  if (!secret) return process.env.NODE_ENV !== "production";
   const header = req.headers.get("authorization");
   return header === `Bearer ${secret}`;
 }

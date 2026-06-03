@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { registerAction, type AuthFormState } from "@/server/actions/auth";
 import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,12 +11,19 @@ const initial: AuthFormState = { ok: false };
 
 export function RegisterForm({ role }: { role: "CUSTOMER" | "INVESTOR" }) {
   const [state, action, pending] = useActionState(registerAction, initial);
+  const lastNotified = useRef<AuthFormState | null>(null);
+
+  useEffect(() => {
+    if (state === lastNotified.current) return;
+    if (state.ok && state.message) toast.success(state.message);
+    else if (!state.ok && state.message) toast.error(state.message);
+    lastNotified.current = state;
+  }, [state]);
 
   if (state.ok) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900">
-        <h3 className="font-semibold">Account created 🎉</h3>
-        <p className="mt-1 text-sm">{state.message}</p>
+      <div className="text-slate-700">
+        <p className="text-sm">Your account has been created.</p>
         <Link href="/login" className="mt-3 inline-block text-sm font-semibold text-teal-700 hover:underline">
           Go to sign in →
         </Link>
@@ -48,7 +56,6 @@ export function RegisterForm({ role }: { role: "CUSTOMER" | "INVESTOR" }) {
         <Input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" />
         {state.errors?.password ? <p className="mt-1 text-xs text-red-600">{state.errors.password[0]}</p> : null}
       </div>
-      {state.message ? <p className="text-sm text-red-600">{state.message}</p> : null}
       <Button type="submit" className="w-full" disabled={pending}>{pending ? "Creating…" : "Create account"}</Button>
     </form>
   );

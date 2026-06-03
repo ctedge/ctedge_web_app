@@ -24,8 +24,8 @@ const landSchema = z.object({
   priceInstallment: z.coerce.number().nonnegative().optional(),
   paymentPlans: z.string().optional(),
   features: z.string().optional(),
-  mapLat: z.coerce.number().optional(),
-  mapLng: z.coerce.number().optional(),
+  mapLat: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number()).optional(),
+  mapLng: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number()).optional(),
   galleryKeys: z.string().optional(),
   brochureKey: z.string().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "SOLD_OUT", "ARCHIVED"]).default("DRAFT"),
@@ -43,6 +43,15 @@ function parseJsonOr<T>(raw: string | undefined, fallback: T): T {
   }
 }
 
+function parseJson<T>(raw: string | undefined) {
+  if (!raw) return { success: true, data: [] as unknown as T };
+  try {
+    return { success: true, data: JSON.parse(raw) as T };
+  } catch {
+    return { success: false, error: "Invalid JSON" } as const;
+  }
+}
+
 function parseCsv(raw: string | undefined): string[] {
   if (!raw) return [];
   return raw.split(",").map((s) => s.trim()).filter(Boolean);
@@ -54,8 +63,10 @@ export async function upsertLandListing(formData: FormData) {
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" } as const;
   const d = parsed.data;
 
-  const plans = parseJsonOr(d.paymentPlans, [] as unknown);
-  const plansValidated = paymentPlanSchema.safeParse(plans);
+  const plansResult = parseJson<unknown[]>(d.paymentPlans);
+  if (!plansResult.success) return { ok: false, message: plansResult.error } as const;
+  const plansValidated = paymentPlanSchema.safeParse(plansResult.data);
+  if (!plansValidated.success) return { ok: false, message: plansValidated.error.issues[0]?.message ?? "Invalid payment plans" } as const;
 
   const data = {
     title: d.title,
@@ -63,7 +74,7 @@ export async function upsertLandListing(formData: FormData) {
     plotSizeSqm: d.plotSizeSqm,
     priceOutright: d.priceOutright ?? null,
     priceInstallment: d.priceInstallment ?? null,
-    paymentPlans: plansValidated.success ? plansValidated.data : [],
+    paymentPlans: plansValidated.data,
     features: parseCsv(d.features),
     mapLat: d.mapLat ?? null,
     mapLng: d.mapLng ?? null,
@@ -80,7 +91,7 @@ export async function upsertLandListing(formData: FormData) {
   } else {
     let slug = slugify(d.title);
     const existing = await prisma.landListing.findUnique({ where: { slug } });
-    if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    if (existing) slug = `${slug}-${Date.now().toString(36)}`;
     await prisma.landListing.create({ data: { ...data, slug } });
   }
 
@@ -103,6 +114,7 @@ const housingSchema = z.object({
   bathrooms: z.coerce.number().int().nonnegative().optional(),
   location: z.string().min(2),
   brochureKey: z.string().optional(),
+  features: z.string().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "SOLD_OUT", "ARCHIVED"]).default("DRAFT"),
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
@@ -115,8 +127,10 @@ export async function upsertHousingListing(formData: FormData) {
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" } as const;
   const d = parsed.data;
 
-  const plans = parseJsonOr(d.paymentPlans, [] as unknown);
-  const plansValidated = paymentPlanSchema.safeParse(plans);
+  const plansResult = parseJson<unknown[]>(d.paymentPlans);
+  if (!plansResult.success) return { ok: false, message: plansResult.error } as const;
+  const plansValidated = paymentPlanSchema.safeParse(plansResult.data);
+  if (!plansValidated.success) return { ok: false, message: plansValidated.error.issues[0]?.message ?? "Invalid payment plans" } as const;
 
   const description = parseJsonOr(d.description, { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: d.description ?? "" }] }] });
 
@@ -133,6 +147,7 @@ export async function upsertHousingListing(formData: FormData) {
     bathrooms: d.bathrooms ?? null,
     location: d.location,
     brochureKey: d.brochureKey || null,
+    features: parseCsv(d.features),
     status: d.status,
     seoTitle: d.seoTitle || null,
     seoDescription: d.seoDescription || null,
@@ -144,7 +159,7 @@ export async function upsertHousingListing(formData: FormData) {
   } else {
     let slug = slugify(d.title);
     const existing = await prisma.housingListing.findUnique({ where: { slug } });
-    if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    if (existing) slug = `${slug}-${Date.now().toString(36)}`;
     await prisma.housingListing.create({ data: { ...data, slug } });
   }
 

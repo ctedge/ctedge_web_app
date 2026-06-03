@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { upsertProject } from "@/server/actions/projects";
@@ -21,15 +22,17 @@ export function PortfolioProjectForm({ project }: { project?: ProjectData }) {
   const router = useRouter();
   const [gallery, setGallery] = useState<string[]>(project?.galleryKeys ?? []);
   const [pending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   function onSubmit(formData: FormData) {
-    setError(null);
     formData.set("galleryKeys", gallery.join(","));
     start(async () => {
       const result = await upsertProject(formData);
-      if (result && !result.ok) setError(result.message ?? "Could not save");
-      else router.push("/admin/projects");
+      if (result && !result.ok) {
+        toast.error(result.message ?? "Could not save");
+      } else {
+        toast.success("Project saved.");
+        router.push("/admin/projects");
+      }
     });
   }
 
@@ -57,8 +60,6 @@ export function PortfolioProjectForm({ project }: { project?: ProjectData }) {
       <Field label="Gallery">
         <MediaUploader prefix="projects" value={gallery} onChange={setGallery} accept="image/*" multiple />
       </Field>
-
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <div className="flex justify-end gap-3">
         <Button variant="outline" type="button" onClick={() => router.push("/admin/projects")}>Cancel</Button>

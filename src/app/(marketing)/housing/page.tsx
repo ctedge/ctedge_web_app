@@ -6,6 +6,7 @@ import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Empty } from "@/components/ui/empty";
 import type { HousingType } from "@prisma/client";
+import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = { title: "Housing for sale" };
 export const dynamic = "force-dynamic";
@@ -31,10 +32,10 @@ export default async function HousingIndexPage({ searchParams }: { searchParams:
   });
 
   return (
-    <div className="container-x py-20">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">Properties</p>
-      <h1 className="mt-3 text-4xl font-bold text-slate-900 md:text-5xl">Housing for sale</h1>
-      <form className="mt-8 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-4">
+    <>
+      <PageHero eyebrow="Properties" title="Housing for sale" description="Move-in ready and off-plan homes with flexible payment plans." />
+      <div className="container-x py-12">
+      <form className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-4">
         <Select name="type" defaultValue={sp.type ?? ""}>
           <option value="">Any type</option>
           {housingTypes.map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
@@ -54,6 +55,7 @@ export default async function HousingIndexPage({ searchParams }: { searchParams:
       {listings.length === 0 ? (
         <div className="mt-10"><Empty title="No matching listings" description="Try adjusting your filters." /></div>
       ) : (
+
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {listings.map((h) => (
             <PropertyCard
@@ -68,6 +70,7 @@ export default async function HousingIndexPage({ searchParams }: { searchParams:
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import { Empty } from "@/components/ui/empty";
 import { Button } from "@/components/ui/button";
 import { updateBookingStatus } from "@/server/actions/bookings-admin";
 import { format } from "date-fns";
+import { Pagination, PAGE_SIZE, parsePage, buildPageHref } from "@/components/ui/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +17,17 @@ async function updateBookingStatusAction(formData: FormData) {
   await updateBookingStatus(formData);
 }
 
-export default async function AdminBookingsPage() {
+export default async function AdminBookingsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   await requireRole("ADMIN");
+  const { page: rawPage } = await searchParams;
+  const total = await prisma.inspectionBooking.count();
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(parsePage(rawPage), totalPages);
   const bookings = await prisma.inspectionBooking.findMany({
     include: { land: { select: { title: true } }, housing: { select: { title: true } } },
     orderBy: { preferredDate: "asc" },
-    take: 200,
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
   });
 
   return (
@@ -61,6 +67,12 @@ export default async function AdminBookingsPage() {
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            prevHref={buildPageHref("/admin/bookings", { page: page - 1 })}
+            nextHref={buildPageHref("/admin/bookings", { page: page + 1 })}
+          />
         </CardContent>
       </Card>
     </>

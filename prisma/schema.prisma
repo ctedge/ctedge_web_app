@@ -231,6 +231,7 @@ model HousingListing {
   bathrooms       Int?
   location        String
   brochureKey     String?
+  features        String[]      @default([])
   status          ListingStatus @default(DRAFT)
   seoTitle        String?
   seoDescription  String?
@@ -295,6 +296,7 @@ model Purchase {
 
   @@index([customerId])
   @@index([listingType, listingId])
+  @@unique([customerId, listingType, listingId], name: "uniq_customer_listing")
 }
 
 model Installment {
@@ -426,4 +428,31 @@ model InspectionBooking {
 
   land    LandListing?    @relation(fields: [landId], references: [id], onDelete: SetNull)
   housing HousingListing? @relation(fields: [housingId], references: [id], onDelete: SetNull)
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?   @db.Text
+  coverKey    String?
+  body        String?   @db.Text
+  authorName  String?
+  category    String?
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  seoTitle    String?
+  seoDesc     String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model CompanySettings {
+  id        String   @id @default("default")
+  name      String
+  address   String
+  phone     String
+  email     String
+  whatsapp  String
+  updatedAt DateTime @updatedAt
 }

@@ -7,23 +7,31 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Empty } from "@/components/ui/empty";
 import { formatNGN, toNumber } from "@/lib/money";
 import { Input } from "@/components/ui/input";
+import { Pagination, PAGE_SIZE, parsePage, buildPageHref } from "@/components/ui/pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCustomersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function AdminCustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   await requireRole("ADMIN");
-  const { q } = await searchParams;
+  const { q, page: rawPage } = await searchParams;
+
+  const where = {
+    role: "CUSTOMER" as const,
+    ...(q ? { OR: [{ email: { contains: q, mode: "insensitive" as const } }, { name: { contains: q, mode: "insensitive" as const } }, { phone: { contains: q } }] } : {}),
+  };
+
+  const total = await prisma.user.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(parsePage(rawPage), totalPages);
 
   const customers = await prisma.user.findMany({
-    where: {
-      role: "CUSTOMER",
-      ...(q ? { OR: [{ email: { contains: q, mode: "insensitive" } }, { name: { contains: q, mode: "insensitive" } }, { phone: { contains: q } }] } : {}),
-    },
+    where,
     include: {
       purchases: { include: { invoices: true } },
     },
     orderBy: { createdAt: "desc" },
-    take: 100,
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
   });
 
   return (
@@ -60,6 +68,12 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            prevHref={buildPageHref("/admin/customers", { q, page: page - 1 })}
+            nextHref={buildPageHref("/admin/customers", { q, page: page + 1 })}
+          />
         </CardContent>
       </Card>
     </>

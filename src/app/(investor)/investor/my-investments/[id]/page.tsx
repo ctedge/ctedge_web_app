@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/dashboard/dashboard-shell";
+import { DaysToMaturity } from "./days-to-maturity";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { formatNGN, toNumber } from "@/lib/money";
 import { format } from "date-fns";
+import { CreateInvestmentTicketForm } from "./create-ticket-form";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +27,6 @@ export default async function InvestmentDetailPage({ params }: { params: Promise
   const principal = toNumber(investment.amount);
   const expected = principal * (1 + investment.project.roiPercent / 100);
   const remaining = Math.max(0, expected - disbursed);
-  const msToMaturity = investment.project.maturityDate.getTime() - Date.now();
-  const daysToMaturity = Math.max(0, Math.ceil(msToMaturity / (1000 * 60 * 60 * 24)));
 
   return (
     <>
@@ -38,7 +38,7 @@ export default async function InvestmentDetailPage({ params }: { params: Promise
         <Card><CardHeader><CardTitle>Principal</CardTitle></CardHeader><CardContent className="pt-0 text-xl font-bold">{formatNGN(principal)}</CardContent></Card>
         <Card><CardHeader><CardTitle>Expected</CardTitle></CardHeader><CardContent className="pt-0 text-xl font-bold text-teal-700">{formatNGN(expected)}</CardContent></Card>
         <Card><CardHeader><CardTitle>Paid out</CardTitle></CardHeader><CardContent className="pt-0 text-xl font-bold text-emerald-700">{formatNGN(disbursed)}</CardContent></Card>
-        <Card><CardHeader><CardTitle>Days to maturity</CardTitle></CardHeader><CardContent className="pt-0 text-xl font-bold">{daysToMaturity}</CardContent></Card>
+        <Card><CardHeader><CardTitle>Days to maturity</CardTitle></CardHeader><CardContent className="pt-0 text-xl font-bold"><DaysToMaturity maturityDate={investment.project.maturityDate} /></CardContent></Card>
       </div>
 
       <Card className="mt-8">
@@ -60,6 +60,14 @@ export default async function InvestmentDetailPage({ params }: { params: Promise
               </TBody>
             </Table>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="mt-8">
+        <CardHeader><CardTitle>Open a payment ticket</CardTitle></CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-slate-600">Add to your investment: open a ticket, transfer to the bank account on the ticket page, then confirm.</p>
+          <CreateInvestmentTicketForm investmentId={investment.id} />
         </CardContent>
       </Card>
 

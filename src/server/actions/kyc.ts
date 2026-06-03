@@ -77,6 +77,8 @@ export async function decideKyc(formData: FormData) {
   });
 
   revalidatePath("/admin/investors");
+  revalidatePath(`/admin/investors/${parsed.data.userId}`);
   revalidatePath("/investor/kyc");
+  revalidatePath("/investor/projects");
   return { ok: true } as const;
 }

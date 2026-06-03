@@ -14,7 +14,9 @@ const projectSchema = z.object({
   description: z.string().min(1),
   galleryKeys: z.string().optional(),
   location: z.string().optional(),
-  completionDate: z.string().optional(),
+  completionDate: z.string().optional().refine((value) => !value || !Number.isNaN(new Date(value).valueOf()), {
+    message: "Invalid completion date",
+  }),
 });
 
 export async function upsertProject(formData: FormData) {
@@ -37,7 +39,7 @@ export async function upsertProject(formData: FormData) {
   } else {
     let slug = slugify(d.title);
     const existing = await prisma.project.findUnique({ where: { slug } });
-    if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    if (existing) slug = `${slug}-${Date.now().toString(36)}`;
     await prisma.project.create({ data: { ...data, slug } });
   }
 
@@ -63,7 +65,9 @@ const invProjectSchema = z.object({
   minAmount: z.coerce.number().positive(),
   roiPercent: z.coerce.number().positive(),
   durationMonths: z.coerce.number().int().positive(),
-  maturityDate: z.string().min(1),
+  maturityDate: z.string().min(1).refine((value) => !Number.isNaN(new Date(value).valueOf()), {
+    message: "Invalid maturity date",
+  }),
   totalTarget: z.coerce.number().positive(),
   status: z.enum(["OPEN", "CLOSED", "MATURED"]),
   galleryKeys: z.string().optional(),
@@ -94,7 +98,7 @@ export async function upsertInvestmentProject(formData: FormData) {
   } else {
     let slug = slugify(d.title);
     const existing = await prisma.investmentProject.findUnique({ where: { slug } });
-    if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    if (existing) slug = `${slug}-${Date.now().toString(36)}`;
     await prisma.investmentProject.create({ data: { ...data, slug } });
   }
 

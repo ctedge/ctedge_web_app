@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatNGN, toNumber } from "@/lib/money";
 import { deleteProject } from "@/server/actions/projects";
+import { Pagination, PAGE_SIZE, parsePage, buildPageHref } from "@/components/ui/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +17,26 @@ async function deleteProjectAction(formData: FormData) {
   await deleteProject(formData);
 }
 
-export default async function AdminProjectsPage() {
+export default async function AdminProjectsPage({ searchParams }: { searchParams: Promise<{ portfolioPage?: string; investmentPage?: string }> }) {
   await requireRole("ADMIN");
-  const [projects, investmentProjects] = await Promise.all([
-    prisma.project.findMany({ orderBy: { updatedAt: "desc" } }),
-    prisma.investmentProject.findMany({ orderBy: { updatedAt: "desc" } }),
+  const { portfolioPage: rawP, investmentPage: rawI } = await searchParams;
+
+  const [portfolioTotal, investmentTotal] = await Promise.all([
+    prisma.project.count(),
+    prisma.investmentProject.count(),
   ]);
+
+  const portfolioTotalPages = Math.max(1, Math.ceil(portfolioTotal / PAGE_SIZE));
+  const investmentTotalPages = Math.max(1, Math.ceil(investmentTotal / PAGE_SIZE));
+  const portfolioPage = Math.min(parsePage(rawP), portfolioTotalPages);
+  const investmentPage = Math.min(parsePage(rawI), investmentTotalPages);
+
+  const [projects, investmentProjects] = await Promise.all([
+    prisma.project.findMany({ orderBy: { updatedAt: "desc" }, skip: (portfolioPage - 1) * PAGE_SIZE, take: PAGE_SIZE }),
+    prisma.investmentProject.findMany({ orderBy: { updatedAt: "desc" }, skip: (investmentPage - 1) * PAGE_SIZE, take: PAGE_SIZE }),
+  ]);
+
+  const projectHref = (pp: number, ip: number) => buildPageHref("/admin/projects", { portfolioPage: pp, investmentPage: ip });
 
   return (
     <>
@@ -31,7 +46,7 @@ export default async function AdminProjectsPage() {
       </PageHeader>
 
       <Card>
-        <CardHeader><CardTitle>Portfolio ({projects.length})</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Portfolio ({portfolioTotal})</CardTitle></CardHeader>
         <CardContent className="p-0">
           {projects.length === 0 ? (
             <p className="p-6 text-sm text-slate-500">No projects yet.</p>
@@ -57,11 +72,17 @@ export default async function AdminProjectsPage() {
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={portfolioPage}
+            totalPages={portfolioTotalPages}
+            prevHref={projectHref(portfolioPage - 1, investmentPage)}
+            nextHref={projectHref(portfolioPage + 1, investmentPage)}
+          />
         </CardContent>
       </Card>
 
       <Card className="mt-8">
-        <CardHeader><CardTitle>Investment projects ({investmentProjects.length})</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Investment projects ({investmentTotal})</CardTitle></CardHeader>
         <CardContent className="p-0">
           {investmentProjects.length === 0 ? (
             <p className="p-6 text-sm text-slate-500">No investment projects yet.</p>
@@ -84,6 +105,12 @@ export default async function AdminProjectsPage() {
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={investmentPage}
+            totalPages={investmentTotalPages}
+            prevHref={projectHref(portfolioPage, investmentPage - 1)}
+            nextHref={projectHref(portfolioPage, investmentPage + 1)}
+          />
         </CardContent>
       </Card>
     </>

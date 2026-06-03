@@ -5,12 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createInvoice } from "@/server/actions/invoices";
+import { redirect } from "next/navigation";
+import { ToastFromQuery } from "@/components/ui/toast-from-query";
 
 export const dynamic = "force-dynamic";
 
 async function createInvoiceAction(formData: FormData) {
   "use server";
-  await createInvoice(formData);
+  const result = await createInvoice(formData);
+  if (result?.ok) redirect(`/admin/invoices?created=${result.id}`);
+  redirect(`/admin/invoices/new?error=${encodeURIComponent(result?.message ?? "Could not create invoice")}`);
 }
 
 export default async function NewInvoicePage({ searchParams }: { searchParams: Promise<{ customerId?: string; investmentId?: string }> }) {
@@ -29,6 +33,7 @@ export default async function NewInvoicePage({ searchParams }: { searchParams: P
   return (
     <>
       <PageHeader title="New invoice" description="Issue an invoice tied to a purchase or an investment." />
+      <ToastFromQuery />
       <Card>
         <CardContent className="p-6">
           <form action={createInvoiceAction} className="space-y-5">

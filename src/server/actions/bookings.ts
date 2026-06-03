@@ -12,7 +12,9 @@ const schema = z.object({
   name: z.string().min(2).max(120),
   phone: z.string().min(7).max(30),
   email: z.string().email().optional().or(z.literal("")).transform((v) => (v ? v : undefined)),
-  preferredDate: z.string().min(1),
+  preferredDate: z.string().min(1).refine((value) => !Number.isNaN(new Date(value).valueOf()), {
+    message: "Invalid date",
+  }),
   note: z.string().max(1000).optional(),
 });
 

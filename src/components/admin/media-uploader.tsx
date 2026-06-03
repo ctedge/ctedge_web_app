@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { publicUrl } from "@/lib/r2-client";
 
+
 type Prefix = "listings" | "projects" | "investments" | "brochures" | "documents" | "kyc" | "proofs";
 
 export function MediaUploader({
@@ -21,7 +22,6 @@ export function MediaUploader({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [signedPreviews, setSignedPreviews] = useState<Record<string, string>>({});
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
@@ -29,7 +29,6 @@ export function MediaUploader({
     setError(null);
     try {
       const uploaded: string[] = [];
-      const previews: Record<string, string> = {};
       for (const file of Array.from(files)) {
         const res = await fetch("/api/r2/presign", {
           method: "POST",
@@ -37,13 +36,11 @@ export function MediaUploader({
           body: JSON.stringify({ filename: file.name, contentType: file.type || "application/octet-stream", prefix }),
         });
         if (!res.ok) throw new Error("Presign failed");
-        const { url, key, signedUrl } = (await res.json()) as { url: string; key: string; signedUrl?: string };
+        const { url, key } = (await res.json()) as { url: string; key: string };
         const put = await fetch(url, { method: "PUT", headers: { "content-type": file.type || "application/octet-stream" }, body: file });
         if (!put.ok) throw new Error("Upload failed");
         uploaded.push(key);
-        if (signedUrl) previews[key] = signedUrl;
       }
-      setSignedPreviews((prev) => ({ ...prev, ...previews }));
       onChange(multiple ? [...value, ...uploaded] : uploaded);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -70,7 +67,7 @@ export function MediaUploader({
             <div key={key} className="relative h-20 w-20 overflow-hidden rounded border border-slate-200 bg-slate-50">
               {accept.startsWith("image") ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={signedPreviews[key] ?? publicUrl(key)} alt="" className="h-full w-full object-cover" />
+                <img src={publicUrl(key)} alt="" className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">{key.split("/").pop()}</div>
               )}

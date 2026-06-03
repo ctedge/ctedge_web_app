@@ -41,6 +41,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+function toEmbedUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    if ((u.hostname === "www.youtube.com" || u.hostname === "youtube.com") && u.searchParams.get("v")) {
+      return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
+    }
+    if (u.hostname === "youtu.be") {
+      return `https://www.youtube.com/embed${u.pathname}`;
+    }
+  } catch {}
+  return url;
+}
+
 type TipTapNode = { type: string; text?: string; content?: TipTapNode[] };
 
 function renderBody(node: TipTapNode): string {
@@ -94,6 +107,22 @@ export default async function HousingDetailPage({ params }: Props) {
             </CardContent>
           </Card>
 
+          {listing.features.length > 0 ? (
+            <Card>
+              <CardHeader><CardTitle>Features & amenities</CardTitle></CardHeader>
+              <CardContent>
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {listing.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-slate-700">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-teal-600" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {listing.floorPlanKeys.length > 0 ? (
             <Card>
               <CardHeader><CardTitle>Floor plans</CardTitle></CardHeader>
@@ -132,7 +161,7 @@ export default async function HousingDetailPage({ params }: Props) {
               <CardHeader><CardTitle>Video walkthrough</CardTitle></CardHeader>
               <CardContent className="p-0">
                 <div className="aspect-video">
-                  <iframe src={listing.videoUrl} className="h-full w-full rounded-b-xl" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title="Walkthrough" />
+                  <iframe src={toEmbedUrl(listing.videoUrl)} className="h-full w-full rounded-b-xl" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title="Walkthrough" />
                 </div>
               </CardContent>
             </Card>

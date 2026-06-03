@@ -48,6 +48,7 @@ export async function registerAction(_prev: AuthFormState, formData: FormData): 
     },
   });
 
+  await prisma.verificationToken.deleteMany({ where: { identifier: user.email, purpose: "verify" } });
   const rawToken = randomBytes(32).toString("hex");
   await prisma.verificationToken.create({
     data: {
@@ -90,6 +91,7 @@ export async function requestPasswordReset(_prev: AuthFormState, formData: FormD
   if (!parsed.success) return { ok: false, errors: parsed.error.flatten().fieldErrors };
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
   if (user) {
+    await prisma.verificationToken.deleteMany({ where: { identifier: user.email, purpose: "reset" } });
     const rawToken = randomBytes(32).toString("hex");
     await prisma.verificationToken.create({
       data: {

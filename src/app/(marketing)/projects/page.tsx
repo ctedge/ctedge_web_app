@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { publicUrl } from "@/lib/r2-client";
 import { Empty } from "@/components/ui/empty";
+import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = { title: "Projects" };
 export const dynamic = "force-dynamic";
@@ -20,14 +21,10 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   });
 
   return (
-    <div className="container-x py-20">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">Portfolio</p>
-      <h1 className="mt-3 text-4xl font-bold text-slate-900 md:text-5xl">Our projects</h1>
-      <p className="mt-4 max-w-2xl text-slate-600">
-        Ongoing, completed, and upcoming developments across Nigeria.
-      </p>
-
-      <div className="mt-8 flex flex-wrap gap-2">
+    <>
+      <PageHero eyebrow="Portfolio" title="Our projects" description="Ongoing, completed, and upcoming developments across Nigeria." />
+      <div className="container-x py-12">
+      <div className="flex flex-wrap gap-2">
         <a href="/projects" className={`rounded-full border px-4 py-1.5 text-sm ${!status ? "border-teal-700 bg-teal-700 text-white" : "border-slate-300 text-slate-700"}`}>All</a>
         {filters.map((f) => (
           <a key={f} href={`/projects?status=${f}`} className={`rounded-full border px-4 py-1.5 text-sm ${status === f ? "border-teal-700 bg-teal-700 text-white" : "border-slate-300 text-slate-700"}`}>
@@ -63,6 +60,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

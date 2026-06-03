@@ -1,0 +1,2 @@
+ALTER TABLE "LandListing" DROP COLUMN IF EXISTS "mapLat";
+ALTER TABLE "LandListing" DROP COLUMN IF EXISTS "mapLng";

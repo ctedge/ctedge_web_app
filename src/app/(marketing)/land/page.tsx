@@ -5,6 +5,7 @@ import { formatNGN, toNumber } from "@/lib/money";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Empty } from "@/components/ui/empty";
+import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = { title: "Land for sale" };
 export const dynamic = "force-dynamic";
@@ -35,10 +36,10 @@ export default async function LandIndexPage({ searchParams }: { searchParams: Pr
   });
 
   return (
-    <div className="container-x py-20">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">Properties</p>
-      <h1 className="mt-3 text-4xl font-bold text-slate-900 md:text-5xl">Land for sale</h1>
-      <form className="mt-8 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-5">
+    <>
+      <PageHero eyebrow="Properties" title="Land for sale" description="Verified, documented plots across estates in Nigeria — outright or installment." />
+      <div className="container-x py-12">
+      <form className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-5">
         <Input name="location" placeholder="Location" defaultValue={sp.location ?? ""} />
         <Input name="minPrice" type="number" placeholder="Min price (₦)" defaultValue={sp.minPrice ?? ""} />
         <Input name="maxPrice" type="number" placeholder="Max price (₦)" defaultValue={sp.maxPrice ?? ""} />
@@ -54,7 +55,7 @@ export default async function LandIndexPage({ searchParams }: { searchParams: Pr
       {listings.length === 0 ? (
         <div className="mt-10"><Empty title="No matching listings" description="Try adjusting your filters." /></div>
       ) : (
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {listings.map((l) => (
             <PropertyCard
               key={l.id}
@@ -68,6 +69,7 @@ export default async function LandIndexPage({ searchParams }: { searchParams: Pr
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

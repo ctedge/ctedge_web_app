@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { upsertInvestmentProject } from "@/server/actions/projects";
@@ -26,16 +27,18 @@ export function InvestmentProjectForm({ project }: { project?: InvProjectData })
   const [gallery, setGallery] = useState<string[]>(project?.galleryKeys ?? []);
   const [docs, setDocs] = useState<string[]>(project?.docKeys ?? []);
   const [pending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   function onSubmit(formData: FormData) {
-    setError(null);
     formData.set("galleryKeys", gallery.join(","));
     formData.set("docKeys", docs.join(","));
     start(async () => {
       const result = await upsertInvestmentProject(formData);
-      if (result && !result.ok) setError(result.message ?? "Could not save");
-      else router.push("/admin/projects");
+      if (result && !result.ok) {
+        toast.error(result.message ?? "Could not save");
+      } else {
+        toast.success("Project saved.");
+        router.push("/admin/projects");
+      }
     });
   }
 
@@ -70,8 +73,6 @@ export function InvestmentProjectForm({ project }: { project?: InvProjectData })
       <Field label="Documents (prospectus, agreements template)">
         <MediaUploader prefix="investments" value={docs} onChange={setDocs} accept="application/pdf" multiple />
       </Field>
-
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <div className="flex justify-end gap-3">
         <Button variant="outline" type="button" onClick={() => router.push("/admin/projects")}>Cancel</Button>

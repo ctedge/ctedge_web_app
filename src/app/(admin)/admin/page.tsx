@@ -1,6 +1,9 @@
+import { type Metadata } from "next";
 import Link from "next/link";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/db";
+
+export const metadata: Metadata = { title: "Admin Dashboard" };
 import { PageHeader } from "@/components/dashboard/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

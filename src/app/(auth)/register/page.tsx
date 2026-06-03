@@ -18,6 +18,17 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
       <p className="mt-6 text-sm text-slate-500">
         Already have an account? <Link href="/login" className="font-medium text-teal-700 hover:underline">Log in</Link>
       </p>
+      {role === "CUSTOMER" ? (
+        <p className="mt-2 text-sm text-slate-500">
+          Want to invest with us instead?{" "}
+          <Link href="/register?role=investor" className="font-medium text-teal-700 hover:underline">Become an investor →</Link>
+        </p>
+      ) : (
+        <p className="mt-2 text-sm text-slate-500">
+          Looking to buy a property?{" "}
+          <Link href="/register" className="font-medium text-teal-700 hover:underline">Register as a customer →</Link>
+        </p>
+      )}
     </div>
   );
 }

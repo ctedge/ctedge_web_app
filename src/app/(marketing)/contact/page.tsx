@@ -1,26 +1,28 @@
 import type { Metadata } from "next";
+import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 import { LeadForm } from "@/components/forms/lead-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCompanySettings } from "@/lib/company-settings";
+import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = { title: "Contact Us" };
 
-export default function ContactPage() {
-  const phone = process.env.NEXT_PUBLIC_COMPANY_PHONE ?? "+234 800 000 0000";
-  const email = process.env.NEXT_PUBLIC_COMPANY_EMAIL ?? "hello@example.com";
-  const address = process.env.NEXT_PUBLIC_COMPANY_ADDRESS ?? "Lagos, Nigeria";
-  const whatsapp = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "2348000000000").replace(/[^\d]/g, "");
+export default async function ContactPage() {
+  const settings = await getCompanySettings();
+  const phone = settings.phone;
+  const email = settings.email;
+  const address = settings.address;
+  const whatsapp = settings.whatsapp.replace(/[^\d]/g, "");
   const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY;
   const mapsSrc = mapsKey
     ? `https://www.google.com/maps/embed/v1/place?key=${mapsKey}&q=${encodeURIComponent(address)}`
     : `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 
   return (
-    <div className="container-x py-20">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">Contact</p>
-      <h1 className="mt-3 text-4xl font-bold text-slate-900 md:text-5xl">Let&apos;s talk.</h1>
-      <p className="mt-4 max-w-2xl text-slate-600">Send us a message, call, WhatsApp, or drop by our office.</p>
-
-      <div className="mt-12 grid gap-10 lg:grid-cols-2">
+    <>
+      <PageHero eyebrow="Contact" title="Let's talk." description="Send us a message, call, WhatsApp, or drop by our office." />
+      <div className="container-x py-12">
+      <div className="grid gap-10 lg:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>Send a message</CardTitle></CardHeader>
           <CardContent>
@@ -33,20 +35,20 @@ export default function ContactPage() {
             <CardContent className="py-6">
               <dl className="space-y-4 text-sm">
                 <div>
-                  <dt className="font-semibold text-slate-900">Address</dt>
-                  <dd className="text-slate-600">{address}</dd>
+                  <dt className="flex items-center gap-2 font-semibold text-slate-900"><MapPin className="h-4 w-4 text-teal-700" />Address</dt>
+                  <dd className="mt-1 ml-6 text-slate-600">{address}</dd>
                 </div>
                 <div>
-                  <dt className="font-semibold text-slate-900">Phone</dt>
-                  <dd className="text-slate-600"><a href={`tel:${phone}`}>{phone}</a></dd>
+                  <dt className="flex items-center gap-2 font-semibold text-slate-900"><Phone className="h-4 w-4 text-teal-700" />Phone</dt>
+                  <dd className="mt-1 ml-6 text-slate-600"><a href={`tel:${phone}`}>{phone}</a></dd>
                 </div>
                 <div>
-                  <dt className="font-semibold text-slate-900">Email</dt>
-                  <dd className="text-slate-600"><a href={`mailto:${email}`}>{email}</a></dd>
+                  <dt className="flex items-center gap-2 font-semibold text-slate-900"><Mail className="h-4 w-4 text-teal-700" />Email</dt>
+                  <dd className="mt-1 ml-6 text-slate-600"><a href={`mailto:${email}`}>{email}</a></dd>
                 </div>
                 <div>
-                  <dt className="font-semibold text-slate-900">WhatsApp</dt>
-                  <dd className="text-slate-600"><a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer">Chat on WhatsApp →</a></dd>
+                  <dt className="flex items-center gap-2 font-semibold text-slate-900"><MessageCircle className="h-4 w-4 text-teal-700" />WhatsApp</dt>
+                  <dd className="mt-1 ml-6 text-slate-600"><a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer">Chat on WhatsApp →</a></dd>
                 </div>
               </dl>
             </CardContent>
@@ -56,6 +58,7 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

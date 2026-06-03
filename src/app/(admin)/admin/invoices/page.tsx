@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { formatNGN, toNumber } from "@/lib/money";
 import { markInvoicePaid } from "@/server/actions/invoices";
 import { ProofLink } from "./proof-link";
+import { ToastFromQuery } from "@/components/ui/toast-from-query";
+import { Pagination, PAGE_SIZE, parsePage, buildPageHref } from "@/components/ui/pagination";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +20,18 @@ async function markInvoicePaidAction(formData: FormData) {
   await markInvoicePaid(formData);
 }
 
-export default async function AdminInvoicesPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+export default async function AdminInvoicesPage({ searchParams }: { searchParams: Promise<{ status?: string; created?: string; page?: string }> }) {
   await requireRole("ADMIN");
-  const { status } = await searchParams;
+  const { status, created, page: rawPage } = await searchParams;
+  const createdInvoice = created
+    ? await prisma.invoice.findUnique({ where: { id: created }, select: { number: true } })
+    : null;
   const validStatus = ["UNPAID", "AWAITING_REVIEW", "PAID", "CANCELLED"] as const;
   const where = status && validStatus.includes(status as typeof validStatus[number]) ? { status: status as typeof validStatus[number] } : {};
+
+  const total = await prisma.invoice.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(parsePage(rawPage), totalPages);
 
   const invoices = await prisma.invoice.findMany({
     where,
@@ -32,11 +41,19 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
       investment: { include: { investor: true, project: true } },
     },
     orderBy: { issuedAt: "desc" },
-    take: 100,
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
   });
 
   return (
     <>
+      <ToastFromQuery
+        messages={{
+          created: createdInvoice
+            ? `Invoice ${createdInvoice.number} created and sent to the customer.`
+            : "Invoice created.",
+        }}
+      />
       <PageHeader title="Invoices" description="Create invoices and confirm bank-transfer payments.">
         <Link href="/admin/invoices/new"><Button>New invoice</Button></Link>
       </PageHeader>
@@ -82,6 +99,12 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
               </TBody>
             </Table>
           )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            prevHref={buildPageHref("/admin/invoices", { status, page: page - 1 })}
+            nextHref={buildPageHref("/admin/invoices", { status, page: page + 1 })}
+          />
         </CardContent>
       </Card>
     </>

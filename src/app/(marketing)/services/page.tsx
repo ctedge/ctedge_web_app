@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Home, Building2, Wrench, Hammer, ClipboardList, Compass, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Construction Services" };
 
-const services = [
-  { title: "Residential builds", body: "Bungalows, duplexes, terraces, and custom homes delivered turnkey." },
-  { title: "Commercial developments", body: "Offices, retail spaces, and mixed-use buildings with full project management." },
-  { title: "Estate infrastructure", body: "Road networks, drainage, perimeter fencing, and gatehouses for new estates." },
-  { title: "Renovations", body: "Full renovations and structural upgrades to existing properties." },
-  { title: "Project management", body: "Act as the builder-in-charge for your land, from design to handover." },
-  { title: "BOQ & architectural design", body: "In-house architects and quantity surveyors." },
+const services: { title: string; body: string; Icon: LucideIcon }[] = [
+  { title: "Residential builds", body: "Bungalows, duplexes, terraces, and custom homes delivered turnkey.", Icon: Home },
+  { title: "Commercial developments", body: "Offices, retail spaces, and mixed-use buildings with full project management.", Icon: Building2 },
+  { title: "Estate infrastructure", body: "Road networks, drainage, perimeter fencing, and gatehouses for new estates.", Icon: Hammer },
+  { title: "Renovations", body: "Full renovations and structural upgrades to existing properties.", Icon: Wrench },
+  { title: "Project management", body: "Act as the builder-in-charge for your land, from design to handover.", Icon: ClipboardList },
+  { title: "BOQ & architectural design", body: "In-house architects and quantity surveyors.", Icon: Compass },
 ];
 
 const steps = [
@@ -39,7 +40,10 @@ export default function ServicesPage() {
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => (
             <div key={s.title} className="rounded-xl border border-slate-200 bg-white p-6">
-              <h3 className="text-lg font-semibold text-slate-900">{s.title}</h3>
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-teal-50 text-teal-700">
+                <s.Icon className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{s.title}</h3>
               <p className="mt-2 text-sm text-slate-600">{s.body}</p>
             </div>
           ))}

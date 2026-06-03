@@ -1,8 +1,9 @@
 import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import { formatNGN } from "@/lib/money";
+import { PDF_FONT_FAMILY } from "./font";
 
 const styles = StyleSheet.create({
-  page: { padding: 48, fontSize: 11, fontFamily: "Helvetica", color: "#0f172a" },
+  page: { padding: 48, fontSize: 11, fontFamily: PDF_FONT_FAMILY, color: "#0f172a" },
   header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 32, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: "#e2e8f0" },
   company: { fontSize: 16, fontWeight: 700 },
   subtitle: { fontSize: 10, color: "#64748b", marginTop: 2 },

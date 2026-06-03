@@ -25,7 +25,11 @@ export default async function EditLandPage({ params }: { params: Promise<{ id: s
   return (
     <>
       <PageHeader title={`Edit · ${listing.title}`} description="Update details and publish changes." />
-      <LandListingForm listing={listing} />
+      <LandListingForm listing={{
+        ...listing,
+        priceOutright: listing.priceOutright?.toNumber() ?? null,
+        priceInstallment: listing.priceInstallment?.toNumber() ?? null,
+      }} />
     </>
   );
 }
