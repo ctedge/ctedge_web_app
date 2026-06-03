@@ -6,7 +6,7 @@ import { CurrentYear } from "@/components/current-year";
 import { getCompanySettings } from "@/lib/company-settings";
 
 export default async function LandingLayout({ children }: { children: React.ReactNode }) {
-  const { name: company, whatsapp, phone } = await getCompanySettings();
+  const { name: company, phone } = await getCompanySettings();
   return (
     <>
       <header className="border-b border-slate-200 bg-white">
@@ -28,7 +28,7 @@ export default async function LandingLayout({ children }: { children: React.Reac
         &copy; <CurrentYear /> {company}. <Link href="/" className="hover:underline">Back to main site</Link>
       </footer>
       <EnquiryFab />
-      <WhatsAppFab number={whatsapp} />
+      <WhatsAppFab />
     </>
   );
 }

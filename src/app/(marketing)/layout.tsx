@@ -5,7 +5,7 @@ import { EnquiryFab } from "@/components/enquiry-fab";
 import { getCompanySettings } from "@/lib/company-settings";
 
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
-  const { name, address, phone, email, whatsapp } = await getCompanySettings();
+  const { name, address, phone, email } = await getCompanySettings();
 
   return (
     <>
@@ -13,7 +13,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
       <main className="flex-1">{children}</main>
       <SiteFooter company={name} address={address} phone={phone} email={email} />
       <EnquiryFab />
-      <WhatsAppFab number={whatsapp} />
+      <WhatsAppFab />
     </>
   );
 }

@@ -1,7 +1,9 @@
 import Link from "next/link";
 
-export function WhatsAppFab({ number }: { number: string }) {
+export function WhatsAppFab() {
+  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
   const clean = number.replace(/[^\d]/g, "");
+  if (!clean) return null;
   const href = `https://wa.me/${clean}`;
   return (
     <Link
