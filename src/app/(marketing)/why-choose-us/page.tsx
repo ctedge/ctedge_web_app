@@ -4,6 +4,7 @@ import { ShieldCheck, CreditCard, TrendingUp, HardHat, LayoutDashboard, MessageC
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHero } from "@/components/marketing/page-hero";
+import { MetricsStrip } from "@/components/marketing/metrics-strip";
 
 export const metadata: Metadata = {
   title: "Why Choose Us",
@@ -42,13 +43,6 @@ const reasons: { title: string; body: string; Icon: LucideIcon }[] = [
     body: "Call, email, or WhatsApp — a real person responds. We&apos;re here before, during, and long after the transaction.",
     Icon: MessageCircle,
   },
-];
-
-const stats = [
-  { stat: "500+", label: "Families housed" },
-  { stat: "12+", label: "Estates delivered" },
-  { stat: "18%", label: "Avg. annual ROI" },
-  { stat: "10+", label: "Years in market" },
 ];
 
 const steps = [
@@ -134,14 +128,7 @@ export default function WhyChooseUsPage() {
 
       <section className="bg-[#011F54] text-white">
         <div className="container-x py-16">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label}>
-                <div className="text-3xl font-bold md:text-4xl">{s.stat}</div>
-                <div className="mt-1 text-sm text-teal-100">{s.label}</div>
-              </div>
-            ))}
-          </div>
+          <MetricsStrip variant="dark" />
         </div>
       </section>
 
