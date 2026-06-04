@@ -45,7 +45,7 @@ export function LandingHero({
 export function LandingTestimonials() {
   const items = [
     { quote: "Best real estate investment decision I&apos;ve made. The process was transparent from end to end.", author: "Tolu A., Lagos" },
-    { quote: "I got my C of O exactly when promised — no stories.", author: "Ifeoma N., Abuja" },
+    { quote: "I got my C of O exactly when promised. No stories.", author: "Ifeoma N., Abuja" },
     { quote: "Flexible installments helped me own land without breaking my budget.", author: "Kunle B., Ibadan" },
   ];
   return (

@@ -38,7 +38,7 @@ export default async function InvestmentsPage() {
       <section className="container-x py-20">
         <h2 className="text-2xl font-bold text-slate-900">Open opportunities</h2>
         {projects.length === 0 ? (
-          <div className="mt-8"><Empty title="No open opportunities right now" description="Check back soon — new projects are published regularly." /></div>
+          <div className="mt-8"><Empty title="No open opportunities right now" description="Check back soon. New projects are published regularly." /></div>
         ) : (
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             {projects.map((p) => {

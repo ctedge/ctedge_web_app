@@ -37,7 +37,7 @@ export default async function LandIndexPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHero eyebrow="Properties" title="Land for sale" description="Verified, documented plots across estates in Nigeria — outright or installment." />
+      <PageHero eyebrow="Properties" title="Land for sale" description="Verified, documented plots across estates in Nigeria. Buy outright or on installment." />
       <div className="container-x py-12">
       <form className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-5">
         <Input name="location" placeholder="Location" defaultValue={sp.location ?? ""} />

@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const l = await prisma.landListing.findUnique({ where: { slug } });
   if (!l) return {};
   const title = l.seoTitle ?? l.title;
-  const description = l.seoDescription ?? `${l.title} — ${l.plotSizeSqm} sqm in ${l.location}.`;
+  const description = l.seoDescription ?? `${l.title}. ${l.plotSizeSqm} sqm in ${l.location}.`;
   return {
     title,
     description,

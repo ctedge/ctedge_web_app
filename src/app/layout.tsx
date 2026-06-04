@@ -12,7 +12,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${company} — Real Estate, Construction & Investment`,
+    default: `${company} | Real Estate, Construction & Investment`,
     template: `%s · ${company}`,
   },
   description:

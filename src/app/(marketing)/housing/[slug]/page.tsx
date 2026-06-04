@@ -176,7 +176,7 @@ export default async function HousingDetailPage({ params }: Props) {
                 <input type="hidden" name="listingType" value="HOUSING" />
                 <input type="hidden" name="listingId" value={listing.id} />
                 <input type="hidden" name="paymentMode" value="OUTRIGHT" />
-                <Button type="submit" className="w-full">Reserve — {formatNGN(toNumber(listing.price))}</Button>
+                <Button type="submit" className="w-full">Reserve for {formatNGN(toNumber(listing.price))}</Button>
                 <p className="text-xs text-slate-500">You must be logged in as a customer. You can still book an inspection below without reserving.</p>
               </form>
             </CardContent>

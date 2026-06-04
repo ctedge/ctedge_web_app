@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div>
             <h2 className="text-3xl font-bold leading-tight">Secure access to your portfolio.</h2>
             <p className="mt-4 max-w-md text-teal-100">
-              Track purchases, payments, documents, and investments — all in one place.
+              Track purchases, payments, documents, and investments, all in one place.
             </p>
           </div>
           <p className="text-sm text-teal-200">&copy; <CurrentYear /> {company}</p>

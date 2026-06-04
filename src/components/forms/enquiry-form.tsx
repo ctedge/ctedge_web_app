@@ -24,7 +24,7 @@ export function EnquiryForm() {
   if (state.ok) {
     return (
       <div className="animate-scale-in rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900">
-        <h3 className="font-semibold">Thanks — we got your enquiry.</h3>
+        <h3 className="font-semibold">Thanks! We got your enquiry.</h3>
         <p className="mt-1 text-sm">A member of our team will reach out within 1 business day.</p>
       </div>
     );

@@ -10,7 +10,7 @@ const values: { title: string; body: string; Icon: LucideIcon }[] = [
   { title: "Integrity", body: "We act with honesty in every transaction, every title, every conversation.", Icon: ShieldCheck },
   { title: "Excellence", body: "We hold our designs, builds, and service to a standard we would stake our name on.", Icon: Award },
   { title: "Trust", body: "We earn confidence by doing what we said we would do, on time, in full.", Icon: Handshake },
-  { title: "Partnership", body: "Our clients, communities, and investors grow alongside us — not behind us.", Icon: Users },
+  { title: "Partnership", body: "Our clients, communities, and investors grow alongside us, not behind us.", Icon: Users },
   { title: "Growth", body: "Every project is built to compound long-term value for the people it serves.", Icon: TrendingUp },
 ];
 

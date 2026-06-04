@@ -31,8 +31,8 @@ export default async function HomePage() {
             Build wealth on land you can trust.
           </h1>
           <p className="animate-slide-up mt-5 max-w-2xl text-lg text-teal-100 animate-delay-200">
-            {company} delivers prime land, quality homes, and high-yield real estate investments —
-            backed by transparent documentation and flexible payment plans.
+            {company} delivers prime land, quality homes, and high-yield real estate investments.
+            Every offering is backed by transparent documentation and flexible payment plans.
           </p>
           <div className="animate-slide-up mt-8 flex flex-wrap gap-3 animate-delay-300">
             <Link href="/land"><Button size="lg" className="transition-smooth bg-white text-teal-900 hover:bg-teal-50 hover:scale-105">Explore land</Button></Link>
@@ -188,8 +188,8 @@ export default async function HomePage() {
                 Built on trust. Backed by real assets.
               </h2>
               <p className="mt-3 max-w-2xl text-slate-600">
-                We&apos;ve helped hundreds of Nigerians own land, build homes, and grow wealth — without the usual
-                headaches of the real estate industry.
+                We&apos;ve helped hundreds of Nigerians own land, build homes, and grow wealth. All without the
+                usual headaches of the real estate industry.
               </p>
             </div>
             <Link href="/why-choose-us" className="transition-smooth text-sm font-semibold text-teal-700 hover:gap-2 hover:underline">
@@ -236,7 +236,7 @@ export default async function HomePage() {
               <CardContent className="animate-slide-left flex flex-col justify-center bg-white p-10">
                 <h4 className="text-xl font-semibold text-slate-900">Why invest with us</h4>
                 <ul className="mt-4 space-y-3 text-slate-700">
-                  <li className="animate-slide-left animate-delay-100">• Asset-backed investments — every naira tied to real property.</li>
+                  <li className="animate-slide-left animate-delay-100">• Asset-backed investments. Every naira is tied to real property.</li>
                   <li className="animate-slide-left animate-delay-200">• Transparent reporting on project progress and returns.</li>
                   <li className="animate-slide-left animate-delay-300">• Flexible tenors from 6 to 36 months.</li>
                   <li className="animate-slide-left animate-delay-400">• Professional management with a verified track record.</li>
@@ -250,7 +250,7 @@ export default async function HomePage() {
       <section className="bg-slate-900 text-white">
         <div className="container-x py-20 text-center">
           <h3 className="animate-slide-up text-3xl font-bold">Ready to own or invest?</h3>
-          <p className="animate-slide-up mt-3 text-slate-300 animate-delay-100">Talk to us today — we&apos;ll guide you through the best fit for your goals.</p>
+          <p className="animate-slide-up mt-3 text-slate-300 animate-delay-100">Talk to us today. We&apos;ll guide you through the best fit for your goals.</p>
           <div className="animate-slide-up mt-6 flex justify-center gap-3 animate-delay-200">
             <Link href="/contact"><Button size="lg" className="transition-smooth bg-teal-500 hover:bg-teal-600 hover:scale-105">Get in touch</Button></Link>
             <Link href="/buy-land"><Button size="lg" variant="outline" className="transition-smooth border-white/40 bg-transparent text-white hover:bg-white/10 hover:scale-105">Buy land</Button></Link>
@@ -295,7 +295,7 @@ const services: {
   {
     title: "Construction Services",
     description:
-      "End-to-end construction for private clients and estates — from design and permits to turnover and handover.",
+      "End-to-end construction for private clients and estates, from design and permits to turnover and handover.",
     bullets: [
       "Bungalows, duplexes, terraces",
       "Estate and infrastructure builds",
@@ -326,7 +326,7 @@ const whyUs: { title: string; body: string; Icon: LucideIcon }[] = [
   },
   {
     title: "Flexible payment plans",
-    body: "Outright or structured installments — 3, 6, 12 months and beyond.",
+    body: "Outright or structured installments. 3, 6, 12 months and beyond.",
     Icon: Wallet,
   },
   {

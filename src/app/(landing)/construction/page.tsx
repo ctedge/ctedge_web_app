@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { LandingHero, LandingTestimonials } from "@/components/marketing/landing-hero";
 
-export const metadata: Metadata = { title: "Construction Services — build with confidence" };
+export const metadata: Metadata = { title: "Construction Services | build with confidence" };
 
 export default function ConstructionLanding() {
   return (
     <>
       <LandingHero
         eyebrow="Construction Services"
-        heading="Build your home — delivered on time, on budget."
+        heading="Build your home. Delivered on time and on budget."
         bullets={[
           "Turnkey residential and commercial builds across Nigeria.",
           "In-house architects, quantity surveyors, and site engineers.",

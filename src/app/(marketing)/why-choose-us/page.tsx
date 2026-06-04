@@ -9,7 +9,7 @@ import { MetricsStrip } from "@/components/marketing/metrics-strip";
 export const metadata: Metadata = {
   title: "Why Choose Us",
   description:
-    "Verified titles, flexible payment plans, asset-backed investments and professional project delivery — see why customers and investors trust us.",
+    "Verified titles, flexible payment plans, asset-backed investments and professional project delivery. See why customers and investors trust us.",
 };
 
 const reasons: { title: string; body: string; Icon: LucideIcon }[] = [
@@ -20,7 +20,7 @@ const reasons: { title: string; body: string; Icon: LucideIcon }[] = [
   },
   {
     title: "Flexible, transparent payment plans",
-    body: "Outright or structured installment plans — 3, 6, 12 months and beyond. You see every line item before you sign.",
+    body: "Outright or structured installment plans across 3, 6, 12 months and beyond. You see every line item before you sign.",
     Icon: CreditCard,
   },
   {
@@ -30,17 +30,17 @@ const reasons: { title: string; body: string; Icon: LucideIcon }[] = [
   },
   {
     title: "Professional project delivery",
-    body: "In-house construction, supervision, and handover — no middlemen, no delays we can&apos;t explain. We build what we promise.",
+    body: "In-house construction, supervision, and handover. No middlemen, no delays we can&apos;t explain. We build what we promise.",
     Icon: HardHat,
   },
   {
     title: "End-to-end digital experience",
-    body: "Track payments, download receipts, upload proofs, and see project progress — all from your personal dashboard.",
+    body: "Track payments, download receipts, upload proofs, and see project progress, all from your personal dashboard.",
     Icon: LayoutDashboard,
   },
   {
     title: "Responsive, human support",
-    body: "Call, email, or WhatsApp — a real person responds. We&apos;re here before, during, and long after the transaction.",
+    body: "Call, email, or WhatsApp and a real person responds. We&apos;re here before, during, and long after the transaction.",
     Icon: MessageCircle,
   },
 ];
@@ -49,7 +49,7 @@ const steps = [
   {
     n: "01",
     title: "Discover",
-    body: "Tell us your goals — buy, build, or invest. We match you with the right offering.",
+    body: "Tell us your goals: buy, build, or invest. We match you with the right offering.",
   },
   {
     n: "02",
@@ -64,7 +64,7 @@ const steps = [
   {
     n: "04",
     title: "Own & grow",
-    body: "Track allocations, payments, and returns from your dashboard — with updates at every milestone.",
+    body: "Track allocations, payments, and returns from your dashboard, with updates at every milestone.",
   },
 ];
 
@@ -178,7 +178,7 @@ export default function WhyChooseUsPage() {
         <div className="container-x py-20 text-center">
           <h3 className="text-3xl font-bold">Ready to get started?</h3>
           <p className="mt-3 text-slate-300">
-            Talk to our team — we&apos;ll guide you to the right plot, home, or investment.
+            Talk to our team. We&apos;ll guide you to the right plot, home, or investment.
           </p>
           <div className="mt-6 flex justify-center gap-3">
             <Link href="/contact"><Button size="lg" className="bg-teal-500 hover:bg-teal-600">Get in touch</Button></Link>
