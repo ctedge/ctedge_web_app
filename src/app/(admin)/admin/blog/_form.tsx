@@ -47,19 +47,25 @@ export function BlogPostForm({ post }: { post?: PostData }) {
     }
   }, [title, slugTouched]);
 
-  function onSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     formData.set("slug", slug);
     formData.set("body", body);
     formData.set("coverKey", coverKeys[0] ?? "");
     start(async () => {
       const result = await upsertBlogPost(formData);
-      if (result && !result.ok) toast.error(result.message ?? "Could not save");
-      else toast.success("Post saved.");
+      if (result && !result.ok) {
+        toast.error(result.message ?? "Could not save");
+        return;
+      }
+      toast.success("Post saved.");
+      router.push("/admin/blog");
     });
   }
 
   return (
-    <form action={onSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {post?.id ? <input type="hidden" name="id" value={post.id} /> : null}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-6">

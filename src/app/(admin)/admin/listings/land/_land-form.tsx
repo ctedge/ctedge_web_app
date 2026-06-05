@@ -36,7 +36,9 @@ export function LandListingForm({ listing }: { listing?: LandData }) {
   const [og, setOg] = useState<string>(listing?.ogImageKey ?? "");
   const [pending, start] = useTransition();
 
-  function onSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     formData.set("galleryKeys", gallery.join(","));
     if (brochure) formData.set("brochureKey", brochure); else formData.delete("brochureKey");
     if (og) formData.set("ogImageKey", og); else formData.delete("ogImageKey");
@@ -44,15 +46,15 @@ export function LandListingForm({ listing }: { listing?: LandData }) {
       const result = await upsertLandListing(formData);
       if (result && !result.ok) {
         toast.error(result.message ?? "Could not save");
-      } else {
-        toast.success("Listing saved.");
-        router.push("/admin/listings");
+        return;
       }
+      toast.success("Listing saved.");
+      router.push("/admin/listings");
     });
   }
 
   return (
-    <form action={onSubmit} className="space-y-6 rounded-xl border border-slate-200 bg-white p-6">
+    <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-slate-200 bg-white p-6">
       {listing?.id ? <input type="hidden" name="id" value={listing.id} /> : null}
 
       <div className="grid gap-4 md:grid-cols-2">
