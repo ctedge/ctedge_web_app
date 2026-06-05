@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { upsertInvestmentProject } from "@/server/actions/projects";
 import { MediaUploader } from "@/components/admin/media-uploader";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 type InvProjectData = {
   id?: string;
@@ -47,7 +48,7 @@ export function InvestmentProjectForm({ project }: { project?: InvProjectData })
       {project?.id ? <input type="hidden" name="id" value={project.id} /> : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Title"><Input name="title" defaultValue={project?.title ?? ""} required /></Field>
+        <Field label="Title" required><Input name="title" defaultValue={project?.title ?? ""} required /></Field>
         <Field label="Status">
           <select name="status" defaultValue={project?.status ?? "OPEN"} className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm">
             <option value="OPEN">OPEN</option>
@@ -55,14 +56,14 @@ export function InvestmentProjectForm({ project }: { project?: InvProjectData })
             <option value="MATURED">MATURED</option>
           </select>
         </Field>
-        <Field label="Minimum amount (NGN)"><Input name="minAmount" type="number" step="0.01" defaultValue={project?.minAmount ? String(project.minAmount) : ""} required /></Field>
-        <Field label="Target raise (NGN)"><Input name="totalTarget" type="number" step="0.01" defaultValue={project?.totalTarget ? String(project.totalTarget) : ""} required /></Field>
-        <Field label="ROI (%)"><Input name="roiPercent" type="number" step="0.01" defaultValue={project?.roiPercent ?? ""} required /></Field>
-        <Field label="Duration (months)"><Input name="durationMonths" type="number" defaultValue={project?.durationMonths ?? ""} required /></Field>
-        <Field label="Maturity date"><Input name="maturityDate" type="date" defaultValue={project?.maturityDate ? project.maturityDate.toISOString().slice(0, 10) : ""} required /></Field>
+        <Field label="Minimum amount (NGN)" required><Input name="minAmount" type="number" step="0.01" defaultValue={project?.minAmount ? String(project.minAmount) : ""} required /></Field>
+        <Field label="Target raise (NGN)" required><Input name="totalTarget" type="number" step="0.01" defaultValue={project?.totalTarget ? String(project.totalTarget) : ""} required /></Field>
+        <Field label="ROI (%)" required><Input name="roiPercent" type="number" step="0.01" defaultValue={project?.roiPercent ?? ""} required /></Field>
+        <Field label="Duration (months)" required><Input name="durationMonths" type="number" defaultValue={project?.durationMonths ?? ""} required /></Field>
+        <Field label="Maturity date" required><Input name="maturityDate" type="date" defaultValue={project?.maturityDate ? project.maturityDate.toISOString().slice(0, 10) : ""} required /></Field>
       </div>
 
-      <Field label="Description">
+      <Field label="Description" required>
         <textarea name="description" rows={6} defaultValue={project?.description ?? ""} className="w-full rounded-md border border-slate-300 bg-white p-3 text-sm" required />
       </Field>
 
@@ -82,10 +83,13 @@ export function InvestmentProjectForm({ project }: { project?: InvProjectData })
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold text-slate-600">{label}</label>
+      <label className="mb-1 block text-xs font-semibold text-slate-600">
+        {label}
+        {required ? <RequiredMark /> : null}
+      </label>
       {children}
     </div>
   );

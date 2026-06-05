@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { upsertTestimonial } from "@/server/actions/testimonials";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 type TestimonialData = {
   id?: string;
@@ -38,10 +39,10 @@ export function TestimonialForm({ testimonial }: { testimonial?: TestimonialData
         <h2 className="text-sm font-semibold text-slate-700">Author</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Author name">
+          <Field label="Author name" required>
             <Input name="authorName" defaultValue={testimonial?.authorName ?? ""} required />
           </Field>
-          <Field label="Role">
+          <Field label="Role" required>
             <select
               name="role"
               defaultValue={testimonial?.role ?? "CLIENT"}
@@ -62,7 +63,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: TestimonialData
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-slate-700">Quote</h2>
+        <h2 className="text-sm font-semibold text-slate-700">Quote<RequiredMark /></h2>
         <textarea
           name="quote"
           rows={5}
@@ -108,10 +109,13 @@ export function TestimonialForm({ testimonial }: { testimonial?: TestimonialData
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold text-slate-600">{label}</label>
+      <label className="mb-1 block text-xs font-semibold text-slate-600">
+        {label}
+        {required ? <RequiredMark /> : null}
+      </label>
       {children}
     </div>
   );

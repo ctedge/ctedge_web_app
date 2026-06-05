@@ -19,13 +19,13 @@ const landSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(2),
   location: z.string().min(2),
-  plotSizeSqm: z.coerce.number().int().positive(),
-  priceOutright: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative()).optional(),
-  priceInstallment: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative()).optional(),
+  plotSizeSqm: z.coerce.number().int().positive().max(10000000),
+  priceOutright: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative().optional()),
+  priceInstallment: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative().optional()),
   paymentPlans: z.string().optional(),
   features: z.string().optional(),
-  mapLat: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number()).optional(),
-  mapLng: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number()).optional(),
+  mapLat: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().optional()),
+  mapLng: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().optional()),
   galleryKeys: z.string().optional(),
   brochureKey: z.string().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "SOLD_OUT", "ARCHIVED"]).default("DRAFT"),
@@ -57,23 +57,29 @@ function parseCsv(raw: string | undefined): string[] {
   return raw.split(",").map((s) => s.trim()).filter(Boolean);
 }
 
+function formatIssue(issue: { path: (string | number)[]; message: string } | undefined, fallback: string) {
+  if (!issue) return fallback;
+  const field = issue.path.join(".") || "Field";
+  return `${field}: ${issue.message}`;
+}
+
 export async function upsertLandListing(formData: FormData) {
   await requireRole("ADMIN");
   const parsed = landSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" } as const;
+  if (!parsed.success) return { ok: false, message: formatIssue(parsed.error.issues[0], "Invalid input") } as const;
   const d = parsed.data;
 
   const plansResult = parseJson<unknown[]>(d.paymentPlans);
   if (!plansResult.success) return { ok: false, message: plansResult.error } as const;
   const plansValidated = paymentPlanSchema.safeParse(plansResult.data);
-  if (!plansValidated.success) return { ok: false, message: plansValidated.error.issues[0]?.message ?? "Invalid payment plans" } as const;
+  if (!plansValidated.success) return { ok: false, message: formatIssue(plansValidated.error.issues[0], "Invalid payment plans") } as const;
 
   const data = {
     title: d.title,
     location: d.location,
     plotSizeSqm: d.plotSizeSqm,
-    priceOutright: d.priceOutright ?? null,
-    priceInstallment: d.priceInstallment ?? null,
+    priceOutright: d.priceOutright != null ? String(d.priceOutright) : null,
+    priceInstallment: d.priceInstallment != null ? String(d.priceInstallment) : null,
     paymentPlans: plansValidated.data,
     features: parseCsv(d.features),
     mapLat: d.mapLat ?? null,
@@ -110,8 +116,8 @@ const housingSchema = z.object({
   paymentPlans: z.string().optional(),
   galleryKeys: z.string().optional(),
   videoUrl: z.string().url().optional().or(z.literal("")),
-  bedrooms: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().int().nonnegative()).optional(),
-  bathrooms: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().int().nonnegative()).optional(),
+  bedrooms: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().int().nonnegative().optional()),
+  bathrooms: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().int().nonnegative().optional()),
   location: z.string().min(2),
   brochureKey: z.string().optional(),
   features: z.string().optional(),
@@ -124,13 +130,13 @@ const housingSchema = z.object({
 export async function upsertHousingListing(formData: FormData) {
   await requireRole("ADMIN");
   const parsed = housingSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" } as const;
+  if (!parsed.success) return { ok: false, message: formatIssue(parsed.error.issues[0], "Invalid input") } as const;
   const d = parsed.data;
 
   const plansResult = parseJson<unknown[]>(d.paymentPlans);
   if (!plansResult.success) return { ok: false, message: plansResult.error } as const;
   const plansValidated = paymentPlanSchema.safeParse(plansResult.data);
-  if (!plansValidated.success) return { ok: false, message: plansValidated.error.issues[0]?.message ?? "Invalid payment plans" } as const;
+  if (!plansValidated.success) return { ok: false, message: formatIssue(plansValidated.error.issues[0], "Invalid payment plans") } as const;
 
   const description = parseJsonOr(d.description, { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: d.description ?? "" }] }] });
 

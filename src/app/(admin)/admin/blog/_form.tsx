@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { MediaUploader } from "@/components/admin/media-uploader";
 import { upsertBlogPost } from "@/server/actions/blog";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 type PostData = {
   id?: string;
@@ -72,7 +73,7 @@ export function BlogPostForm({ post }: { post?: PostData }) {
         <h2 className="text-sm font-semibold text-slate-700">Post details</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Title">
+          <Field label="Title" required>
             <Input
               name="title"
               value={title}
@@ -156,10 +157,13 @@ export function BlogPostForm({ post }: { post?: PostData }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold text-slate-600">{label}</label>
+      <label className="mb-1 block text-xs font-semibold text-slate-600">
+        {label}
+        {required ? <RequiredMark /> : null}
+      </label>
       {children}
     </div>
   );

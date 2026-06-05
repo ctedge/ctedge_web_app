@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MediaUploader } from "@/components/admin/media-uploader";
 import { assignDocument } from "@/server/actions/documents";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 export function AssignDocumentForm({ users }: { users: { id: string; name: string | null; email: string; role: string }[] }) {
   const [key, setKey] = useState<string>("");
@@ -28,7 +29,7 @@ export function AssignDocumentForm({ users }: { users: { id: string; name: strin
   return (
     <form action={onSubmit} className="grid gap-4 md:grid-cols-2">
       <div>
-        <label className="mb-1 block text-xs font-semibold text-slate-600">Recipient</label>
+        <label className="mb-1 block text-xs font-semibold text-slate-600">Recipient<RequiredMark /></label>
         <select name="ownerUserId" required className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm">
           <option value="">Choose user…</option>
           {users.map((u) => (

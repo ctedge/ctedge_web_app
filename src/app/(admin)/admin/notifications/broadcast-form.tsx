@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { broadcastNotification } from "@/server/actions/broadcast";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 export function BroadcastForm() {
   const [pending, start] = useTransition();
@@ -21,7 +22,7 @@ export function BroadcastForm() {
   return (
     <form action={onSubmit} className="space-y-5">
       <div>
-        <label className="mb-1 block text-xs font-semibold text-slate-600">Audience</label>
+        <label className="mb-1 block text-xs font-semibold text-slate-600">Audience<RequiredMark /></label>
         <select name="audience" className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm" required>
           <option value="ALL">Everyone (customers + investors)</option>
           <option value="CUSTOMERS">Customers only</option>
@@ -29,11 +30,11 @@ export function BroadcastForm() {
         </select>
       </div>
       <div>
-        <label className="mb-1 block text-xs font-semibold text-slate-600">Title</label>
+        <label className="mb-1 block text-xs font-semibold text-slate-600">Title<RequiredMark /></label>
         <Input name="title" required />
       </div>
       <div>
-        <label className="mb-1 block text-xs font-semibold text-slate-600">Body</label>
+        <label className="mb-1 block text-xs font-semibold text-slate-600">Body<RequiredMark /></label>
         <textarea name="body" rows={5} className="w-full rounded-md border border-slate-300 bg-white p-3 text-sm" required />
       </div>
       <div>

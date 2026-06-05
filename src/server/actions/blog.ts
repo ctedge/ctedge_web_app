@@ -21,10 +21,16 @@ const blogPostSchema = z.object({
   seoDesc: z.string().optional(),
 });
 
+function formatIssue(issue: { path: (string | number)[]; message: string } | undefined, fallback: string) {
+  if (!issue) return fallback;
+  const field = issue.path.join(".") || "Field";
+  return `${field}: ${issue.message}`;
+}
+
 export async function upsertBlogPost(formData: FormData) {
   await requireRole("ADMIN");
   const parsed = blogPostSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return { ok: false, message: "Invalid input" } as const;
+  if (!parsed.success) return { ok: false, message: formatIssue(parsed.error.issues[0], "Invalid input") } as const;
   const d = parsed.data;
 
   const published = d.published ?? false;

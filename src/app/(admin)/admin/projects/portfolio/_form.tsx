@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { upsertProject } from "@/server/actions/projects";
 import { MediaUploader } from "@/components/admin/media-uploader";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 type ProjectData = {
   id?: string;
@@ -41,7 +42,7 @@ export function PortfolioProjectForm({ project }: { project?: ProjectData }) {
       {project?.id ? <input type="hidden" name="id" value={project.id} /> : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Title"><Input name="title" defaultValue={project?.title ?? ""} required /></Field>
+        <Field label="Title" required><Input name="title" defaultValue={project?.title ?? ""} required /></Field>
         <Field label="Status">
           <select name="status" defaultValue={project?.status ?? "ONGOING"} className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm">
             <option value="ONGOING">ONGOING</option>
@@ -53,7 +54,7 @@ export function PortfolioProjectForm({ project }: { project?: ProjectData }) {
         <Field label="Completion date"><Input name="completionDate" type="date" defaultValue={project?.completionDate ? project.completionDate.toISOString().slice(0, 10) : ""} /></Field>
       </div>
 
-      <Field label="Description">
+      <Field label="Description" required>
         <textarea name="description" rows={6} defaultValue={project?.description ?? ""} className="w-full rounded-md border border-slate-300 bg-white p-3 text-sm" required />
       </Field>
 
@@ -69,10 +70,13 @@ export function PortfolioProjectForm({ project }: { project?: ProjectData }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold text-slate-600">{label}</label>
+      <label className="mb-1 block text-xs font-semibold text-slate-600">
+        {label}
+        {required ? <RequiredMark /> : null}
+      </label>
       {children}
     </div>
   );

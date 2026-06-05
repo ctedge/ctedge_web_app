@@ -9,6 +9,7 @@ import { upsertLandListing } from "@/server/actions/listings";
 import { MediaUploader } from "@/components/admin/media-uploader";
 import { PaymentPlansEditor } from "@/components/admin/payment-plans-editor";
 import { FeaturesEditor } from "@/components/admin/features-editor";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 type LandData = {
   id?: string;
@@ -58,9 +59,9 @@ export function LandListingForm({ listing }: { listing?: LandData }) {
       {listing?.id ? <input type="hidden" name="id" value={listing.id} /> : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Title"><Input name="title" defaultValue={listing?.title ?? ""} required /></Field>
-        <Field label="Location"><Input name="location" defaultValue={listing?.location ?? ""} required /></Field>
-        <Field label="Plot size (sqm)"><Input name="plotSizeSqm" type="number" defaultValue={listing?.plotSizeSqm ?? ""} required /></Field>
+        <Field label="Title" required><Input name="title" defaultValue={listing?.title ?? ""} required /></Field>
+        <Field label="Location" required><Input name="location" defaultValue={listing?.location ?? ""} required /></Field>
+        <Field label="Plot size (sqm)" required><Input name="plotSizeSqm" type="number" defaultValue={listing?.plotSizeSqm ?? ""} required /></Field>
         <Field label="Status">
           <select name="status" defaultValue={listing?.status ?? "DRAFT"} className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm">
             <option value="DRAFT">DRAFT</option>
@@ -111,10 +112,13 @@ export function LandListingForm({ listing }: { listing?: LandData }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold text-slate-600">{label}</label>
+      <label className="mb-1 block text-xs font-semibold text-slate-600">
+        {label}
+        {required ? <RequiredMark /> : null}
+      </label>
       {children}
     </div>
   );

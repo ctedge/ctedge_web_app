@@ -9,6 +9,7 @@ import { upsertHousingListing } from "@/server/actions/listings";
 import { MediaUploader } from "@/components/admin/media-uploader";
 import { PaymentPlansEditor } from "@/components/admin/payment-plans-editor";
 import { AmenitiesChecklist } from "@/components/admin/amenities-checklist";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 type HousingData = {
   id?: string;
@@ -64,14 +65,14 @@ export function HousingListingForm({ listing }: { listing?: HousingData }) {
       {listing?.id ? <input type="hidden" name="id" value={listing.id} /> : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Title"><Input name="title" defaultValue={listing?.title ?? ""} required /></Field>
-        <Field label="Type">
+        <Field label="Title" required><Input name="title" defaultValue={listing?.title ?? ""} required /></Field>
+        <Field label="Type" required>
           <select name="type" defaultValue={listing?.type ?? "BUNGALOW"} className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm">
             {["BUNGALOW", "DUPLEX", "TERRACE", "APARTMENT", "MAISONETTE", "PENTHOUSE", "OTHER"].map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </Field>
-        <Field label="Location"><Input name="location" defaultValue={listing?.location ?? ""} required /></Field>
-        <Field label="Price (NGN)"><Input name="price" type="number" step="0.01" defaultValue={listing?.price ? String(listing.price) : ""} required /></Field>
+        <Field label="Location" required><Input name="location" defaultValue={listing?.location ?? ""} required /></Field>
+        <Field label="Price (NGN)" required><Input name="price" type="number" step="0.01" defaultValue={listing?.price ? String(listing.price) : ""} required /></Field>
         <Field label="Bedrooms"><Input name="bedrooms" type="number" defaultValue={listing?.bedrooms ?? ""} /></Field>
         <Field label="Bathrooms"><Input name="bathrooms" type="number" defaultValue={listing?.bathrooms ?? ""} /></Field>
         <Field label="Video URL"><Input name="videoUrl" type="url" defaultValue={listing?.videoUrl ?? ""} placeholder="https://…" /></Field>
@@ -144,10 +145,13 @@ function tiptapToText(value: unknown): string {
   return collect(value as TipTapLike).replace(/\n+$/, "");
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold text-slate-600">{label}</label>
+      <label className="mb-1 block text-xs font-semibold text-slate-600">
+        {label}
+        {required ? <RequiredMark /> : null}
+      </label>
       {children}
     </div>
   );
