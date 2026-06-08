@@ -15,20 +15,20 @@ const values: { title: string; body: string; Icon: LucideIcon }[] = [
 ];
 
 export default async function AboutPage() {
-  const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "CT Edge Ltd";
+  const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "CT EDGE Ltd";
   return (
     <>
       <PageHero
         eyebrow={`About ${company}`}
         title="Building secure property and long-term wealth across Nigeria."
-        description="CT Edge Ltd is a forward-thinking real estate, investment, construction, and facility management company headquartered in Ilorin, with operations across Kwara, Lagos, Ibadan, and Abuja."
+        description="CT EDGE Ltd is a forward-thinking real estate, investment, construction, and facility management company headquartered in Ilorin, with operations across Kwara, Lagos, Ibadan, and Abuja."
       />
       <div className="container-x py-16">
         <section className="mx-auto max-w-3xl animate-slide-up">
-          <h2 className="text-2xl font-bold text-slate-900">About CT Edge Ltd</h2>
+          <h2 className="text-2xl font-bold text-slate-900">About CT EDGE Ltd</h2>
           <div className="prose prose-slate mt-6 max-w-none">
             <p>
-              CT Edge Ltd is a forward-thinking real estate, investment, construction, and facility management company committed to delivering value through strategic property development and infrastructure services.
+              CT EDGE Ltd is a forward-thinking real estate, investment, construction, and facility management company committed to delivering value through strategic property development and infrastructure services.
             </p>
             <p>
               Based in Ilorin, the company provides innovative real estate solutions that enable individuals, families, and investors to own secure and affordable property while building long-term wealth.
@@ -37,7 +37,7 @@ export default async function AboutPage() {
               Our operations extend beyond Kwara State into major growth corridors such as Lagos, Ibadan, and Abuja.
             </p>
             <p>
-              CT Edge Ltd combines professional construction expertise, transparent property transactions, and flexible investment opportunities to meet the growing demand for quality real estate in Nigeria.
+              CT EDGE Ltd combines professional construction expertise, transparent property transactions, and flexible investment opportunities to meet the growing demand for quality real estate in Nigeria.
             </p>
           </div>
         </section>
