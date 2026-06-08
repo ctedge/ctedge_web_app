@@ -45,6 +45,7 @@ export function SiteFooter({ company, address, phone, email }: { company: string
                         width={160}
                         height={48}
                         priority
+                        style={{ width: "auto" }}
                         className="h-10 w-auto sm:h-12"
                       />
                     </Link>

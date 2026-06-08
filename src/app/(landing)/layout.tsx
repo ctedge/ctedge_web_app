@@ -14,7 +14,7 @@ export default async function LandingLayout({ children }: { children: React.Reac
           <Link href="/" className="flex items-center gap-2">
             {/* <span className="grid h-9 w-9 place-items-center rounded-lg bg-teal-700 text-white font-bold">{company.slice(0, 1)}</span>
             <span className="text-lg font-semibold text-slate-900">{company}</span> */}
-            <Image src="/ctedgelogo.png" alt={`${company} logo`} width={120} height={36} className="h-9 w-auto" />
+            <Image src="/ctedgelogo.png" alt={`${company} logo`} width={120} height={36} style={{ width: "auto" }} className="h-9 w-auto" />
           </Link>
           <div className="text-sm">
             <a href={`tel:${phone}`} className="font-semibold text-teal-700 hover:underline">

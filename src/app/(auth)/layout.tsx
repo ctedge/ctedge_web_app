@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="absolute inset-0 bg-black/60 z-0 "/>
         <div className="lg:flex lg:flex-col lg:justify-between relative z-10  h-screen">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/ctedgelogo_white.png" alt={`${company} Logo`} width={128} height={64} className="h-16 w-auto" />
+            <Image src="/ctedgelogo_white.png" alt={`${company} Logo`} width={128} height={64} style={{ width: "auto" }} className="h-16 w-auto" />
           </Link>
           <div>
             <h2 className="text-3xl font-bold leading-tight">Secure access to your portfolio.</h2>

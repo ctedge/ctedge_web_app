@@ -23,7 +23,7 @@ export async function DashboardShell({
       <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
         <div className="border-b border-slate-200 px-6 py-5">
           <Link href="/" className="">
-            <Image src="/ctedgelogo.png" alt={`${company} logo`} width={128} height={64} className="h-16 w-auto object-contain" />
+            <Image src="/ctedgelogo.png" alt={`${company} logo`} width={128} height={64} style={{ width: "auto" }} className="h-16 w-auto object-contain" />
           </Link>
           <div className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</div>
         </div>

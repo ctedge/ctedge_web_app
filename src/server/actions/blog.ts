@@ -21,9 +21,9 @@ const blogPostSchema = z.object({
   seoDesc: z.string().optional(),
 });
 
-function formatIssue(issue: { path: (string | number)[]; message: string } | undefined, fallback: string) {
+function formatIssue(issue: { path: readonly PropertyKey[]; message: string } | undefined, fallback: string) {
   if (!issue) return fallback;
-  const field = issue.path.join(".") || "Field";
+  const field = issue.path.map(String).join(".") || "Field";
   return `${field}: ${issue.message}`;
 }
 

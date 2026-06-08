@@ -8,6 +8,7 @@ import { signOutAction } from "@/server/actions/auth";
 
 const nav: HeaderNavItem[] = [
   { href: "/about", label: "About" },
+  { href: "/team", label: "Team" },
   { href: "/why-choose-us", label: "Why us" },
   { href: "/services", label: "Services" },
   { href: "/land", label: "Land" },
@@ -84,6 +85,7 @@ export async function SiteHeader({ company }: { company: string }) {
             width={160}
             height={48}
             priority
+            style={{ width: "auto" }}
             className="h-10 w-auto sm:h-12"
           />
         </Link>

@@ -57,9 +57,9 @@ function parseCsv(raw: string | undefined): string[] {
   return raw.split(",").map((s) => s.trim()).filter(Boolean);
 }
 
-function formatIssue(issue: { path: (string | number)[]; message: string } | undefined, fallback: string) {
+function formatIssue(issue: { path: readonly PropertyKey[]; message: string } | undefined, fallback: string) {
   if (!issue) return fallback;
-  const field = issue.path.join(".") || "Field";
+  const field = issue.path.map(String).join(".") || "Field";
   return `${field}: ${issue.message}`;
 }
 
