@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: r2Host },
+      { protocol: "https", hostname: "assets.ctedgeltd.com" },
       { protocol: "https", hostname: "**.r2.dev" },
       { protocol: "https", hostname: "cdn.sanity.io" },
       { protocol: "https", hostname: "images.unsplash.com" },
