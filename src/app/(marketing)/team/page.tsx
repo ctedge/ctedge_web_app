@@ -29,14 +29,14 @@ export default function TeamPage() {
     <>
       <PageHero
         eyebrow="Our team"
-        title="The people building CT Edge Ltd."
+        title="The people building CT EDGE Ltd."
         description="A team of professionals across leadership, engineering, marketing, sales, and operations — committed to delivering secure property and long-term value across Nigeria."
       />
       <div className="container-x py-16">
         <section className="mx-auto max-w-3xl animate-slide-up text-center">
           <h2 className="text-2xl font-bold text-slate-900">Leadership &amp; team</h2>
           <p className="mt-4 text-slate-600">
-            Behind every CT Edge project is a team committed to integrity, excellence, and long-term
+            Behind every CT EDGE project is a team committed to integrity, excellence, and long-term
             value. Spanning leadership, engineering, marketing, sales, and operations, our people
             bring the expertise and care that turn secure property and sound investment into reality
             for the families and investors who build wealth with us.
