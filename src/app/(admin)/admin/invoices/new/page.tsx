@@ -2,11 +2,10 @@ import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/dashboard/dashboard-shell";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { createInvoice } from "@/server/actions/invoices";
 import { redirect } from "next/navigation";
 import { ToastFromQuery } from "@/components/ui/toast-from-query";
+import { NewInvoiceForm } from "./_invoice-form";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +20,28 @@ export default async function NewInvoicePage({ searchParams }: { searchParams: P
   await requireRole("ADMIN");
   const { customerId, investmentId } = await searchParams;
 
-  const [purchases, investments] = await Promise.all([
-    customerId
-      ? prisma.purchase.findMany({ where: { customerId }, include: { customer: true }, orderBy: { startedAt: "desc" } })
-      : prisma.purchase.findMany({ include: { customer: true }, orderBy: { startedAt: "desc" }, take: 50 }),
-    investmentId
-      ? prisma.investment.findMany({ where: { id: investmentId }, include: { investor: true, project: true } })
-      : prisma.investment.findMany({ where: { status: "APPROVED" }, include: { investor: true, project: true }, orderBy: { investedAt: "desc" }, take: 50 }),
+  const [customers, landListings, housingListings, investments] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: "CUSTOMER" },
+      select: { id: true, name: true, email: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.landListing.findMany({
+      where: { status: { not: "ARCHIVED" } },
+      select: { id: true, title: true, location: true },
+      orderBy: { title: "asc" },
+    }),
+    prisma.housingListing.findMany({
+      where: { status: { not: "ARCHIVED" } },
+      select: { id: true, title: true, location: true },
+      orderBy: { title: "asc" },
+    }),
+    prisma.investment.findMany({
+      where: { status: { not: "REJECTED" } },
+      include: { investor: { select: { name: true, email: true } }, project: { select: { title: true } } },
+      orderBy: { investedAt: "desc" },
+      take: 100,
+    }),
   ]);
 
   return (
@@ -36,55 +50,19 @@ export default async function NewInvoicePage({ searchParams }: { searchParams: P
       <ToastFromQuery />
       <Card>
         <CardContent className="p-6">
-          <form action={createInvoiceAction} className="space-y-5">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Target</label>
-              <select name="target" className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm" required>
-                <option value="PURCHASE">Property purchase</option>
-                <option value="INVESTMENT">Investment</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Purchase</label>
-              <select name="purchaseId" className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm">
-                <option value="">— none —</option>
-                {purchases.map((p) => (
-                  <option key={p.id} value={p.id}>{p.customer.name ?? p.customer.email} · {p.listingType} · {p.id.slice(0, 6)}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Investment</label>
-              <select name="investmentId" className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm">
-                <option value="">— none —</option>
-                {investments.map((i) => (
-                  <option key={i.id} value={i.id}>{i.investor.name ?? i.investor.email} · {i.project.title}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600">Amount (NGN)</label>
-                <Input name="amount" type="number" step="0.01" required />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600">Due date</label>
-                <Input name="dueAt" type="date" />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Notes</label>
-              <textarea name="notes" rows={3} className="w-full rounded-md border border-slate-300 bg-white p-3 text-sm" />
-            </div>
-
-            <div className="flex justify-end">
-              <Button type="submit">Create invoice</Button>
-            </div>
-          </form>
+          <NewInvoiceForm
+            customers={customers.map((c) => ({ id: c.id, label: c.name ?? c.email }))}
+            landListings={landListings.map((l) => ({ id: l.id, label: `${l.title} · ${l.location}` }))}
+            housingListings={housingListings.map((h) => ({ id: h.id, label: `${h.title} · ${h.location}` }))}
+            investments={investments.map((i) => ({
+              id: i.id,
+              label: `${i.investor.name ?? i.investor.email} · ${i.project.title} · ${i.status}`,
+            }))}
+            defaultTarget={investmentId ? "INVESTMENT" : "PURCHASE"}
+            defaultCustomerId={customerId}
+            defaultInvestmentId={investmentId}
+            action={createInvoiceAction}
+          />
         </CardContent>
       </Card>
     </>

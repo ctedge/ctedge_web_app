@@ -12,6 +12,7 @@ import { formatNGN, toNumber } from "@/lib/money";
 import { generateReceiptPdf } from "@/lib/pdf/receipt";
 import { putObject, buildKey, publicUrl } from "@/lib/r2";
 import { revalidatePath } from "next/cache";
+import type { ListingType } from "@prisma/client";
 
 const attachProofSchema = z.object({
   invoiceId: z.string().min(1),
@@ -127,7 +128,9 @@ export async function attachProof(formData: FormData) {
 
 const createInvoiceSchema = z.object({
   target: z.enum(["PURCHASE", "INVESTMENT"]),
-  purchaseId: z.string().optional(),
+  customerId: z.string().optional(),
+  listing: z.string().regex(/^(LAND|HOUSING):.+$/).optional(),
+  paymentMode: z.enum(["OUTRIGHT", "INSTALLMENT"]).default("OUTRIGHT"),
   investmentId: z.string().optional(),
   amount: z.coerce.number().positive(),
   dueAt: z.string().optional().refine((value) => !value || !Number.isNaN(new Date(value).valueOf()), {
@@ -141,15 +144,60 @@ export async function createInvoice(formData: FormData) {
   const parsed = createInvoiceSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { ok: false, message: "Invalid invoice input" } as const;
   const d = parsed.data;
-  if (d.target === "PURCHASE" && !d.purchaseId) return { ok: false, message: "Missing purchase" } as const;
-  if (d.target === "INVESTMENT" && !d.investmentId) return { ok: false, message: "Missing investment" } as const;
+
+  let purchaseId: string | null = null;
+  let investmentId: string | null = null;
+
+  if (d.target === "INVESTMENT") {
+    if (!d.investmentId) return { ok: false, message: "Missing investment" } as const;
+    const investment = await prisma.investment.findUnique({ where: { id: d.investmentId } });
+    if (!investment) return { ok: false, message: "Investment not found" } as const;
+    if (investment.status === "REJECTED") return { ok: false, message: "Cannot invoice a rejected investment" } as const;
+    investmentId = investment.id;
+  } else {
+    if (!d.customerId || !d.listing) return { ok: false, message: "Missing customer or property" } as const;
+    const sep = d.listing.indexOf(":");
+    const listingType = d.listing.slice(0, sep) as ListingType;
+    const listingId = d.listing.slice(sep + 1);
+
+    const customer = await prisma.user.findUnique({ where: { id: d.customerId }, select: { id: true, role: true } });
+    if (!customer || customer.role !== "CUSTOMER") return { ok: false, message: "Customer not found" } as const;
+
+    const where = { uniq_customer_listing: { customerId: customer.id, listingType, listingId } };
+    let purchase = await prisma.purchase.findUnique({ where });
+    if (!purchase) {
+      let totalPrice = 0;
+      if (listingType === "LAND") {
+        const l = await prisma.landListing.findUnique({ where: { id: listingId } });
+        if (!l) return { ok: false, message: "Listing not found" } as const;
+        totalPrice = toNumber(
+          (d.paymentMode === "INSTALLMENT" ? l.priceInstallment : l.priceOutright) ?? l.priceOutright ?? l.priceInstallment ?? 0
+        );
+      } else {
+        const h = await prisma.housingListing.findUnique({ where: { id: listingId } });
+        if (!h) return { ok: false, message: "Listing not found" } as const;
+        totalPrice = toNumber(h.price);
+      }
+      try {
+        purchase = await prisma.purchase.create({
+          data: { customerId: customer.id, listingType, listingId, totalPrice, paymentMode: d.paymentMode },
+        });
+      } catch (e: unknown) {
+        if (typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "P2002") {
+          purchase = await prisma.purchase.findUnique({ where });
+        }
+        if (!purchase) throw e;
+      }
+    }
+    purchaseId = purchase.id;
+  }
 
   const invoice = await prisma.invoice.create({
     data: {
       number: generateInvoiceNumber(),
       target: d.target,
-      purchaseId: d.target === "PURCHASE" ? d.purchaseId : null,
-      investmentId: d.target === "INVESTMENT" ? d.investmentId : null,
+      purchaseId,
+      investmentId,
       amount: d.amount,
       dueAt: d.dueAt ? new Date(d.dueAt) : null,
       notes: d.notes,
@@ -160,7 +208,7 @@ export async function createInvoice(formData: FormData) {
   const ownerId = invoice.purchase?.customerId ?? invoice.investment?.investorId;
   if (ownerId) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-    const path = d.target === "PURCHASE" ? `/dashboard/properties/${d.purchaseId}` : `/investor/my-investments/${d.investmentId}`;
+    const path = d.target === "PURCHASE" ? `/dashboard/properties/${purchaseId}` : `/investor/my-investments/${investmentId}`;
     const { html, text } = await renderEmail(
       InvoiceEmail({
         invoiceNumber: invoice.number,
