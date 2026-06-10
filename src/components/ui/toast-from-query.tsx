@@ -8,12 +8,13 @@ type Props = {
   messages?: {
     saved?: string;
     created?: string;
+    deleted?: string;
     success?: string;
     error?: string;
   };
 };
 
-const KEYS = ["success", "error", "saved", "created"] as const;
+const KEYS = ["success", "error", "saved", "created", "deleted"] as const;
 
 export function ToastFromQuery({ messages }: Props) {
   const params = useSearchParams();
@@ -24,7 +25,7 @@ export function ToastFromQuery({ messages }: Props) {
   useEffect(() => {
     if (fired.current) return;
 
-    const success = params.get("success") ?? params.get("saved") ?? params.get("created");
+    const success = params.get("success") ?? params.get("saved") ?? params.get("created") ?? params.get("deleted");
     const error = params.get("error");
 
     let didFire = false;
@@ -36,6 +37,7 @@ export function ToastFromQuery({ messages }: Props) {
       const msg =
         (params.has("saved") && messages?.saved) ||
         (params.has("created") && messages?.created) ||
+        (params.has("deleted") && messages?.deleted) ||
         messages?.success ||
         "Saved.";
       toast.success(msg);

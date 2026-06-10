@@ -8,8 +8,9 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatNGN, toNumber } from "@/lib/money";
-import { markInvoicePaid } from "@/server/actions/invoices";
+import { markInvoicePaid, deleteInvoice } from "@/server/actions/invoices";
 import { ProofLink } from "./proof-link";
+import { ConfirmDeleteButton } from "./confirm-delete-button";
 import { ToastFromQuery } from "@/components/ui/toast-from-query";
 import { Pagination, PAGE_SIZE, parsePage, buildPageHref } from "@/components/ui/pagination";
 import { format } from "date-fns";
@@ -23,6 +24,15 @@ async function markInvoicePaidAction(formData: FormData) {
     redirect("/admin/invoices?success=paid");
   }
   redirect(`/admin/invoices?error=${encodeURIComponent(result.message ?? "Failed to mark paid")}`);
+}
+
+async function deleteInvoiceAction(formData: FormData) {
+  "use server";
+  const result = await deleteInvoice(formData);
+  if (result.ok) {
+    redirect("/admin/invoices?deleted=1");
+  }
+  redirect(`/admin/invoices?error=${encodeURIComponent(result.message ?? "Failed to delete invoice")}`);
 }
 
 export default async function AdminInvoicesPage({ searchParams }: { searchParams: Promise<{ status?: string; created?: string; page?: string }> }) {
@@ -58,6 +68,8 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
             ? `Invoice ${createdInvoice.number} created and sent to the customer.`
             : "Invoice created.",
           success: "Invoice marked as paid.",
+          saved: "Invoice updated and the customer was notified.",
+          deleted: "Invoice deleted.",
         }}
       />
       <PageHeader title="Invoices" description="Create invoices and confirm bank-transfer payments.">
@@ -76,7 +88,7 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
             <p className="p-6 text-sm text-slate-500">No invoices match.</p>
           ) : (
             <Table>
-              <THead><TR><TH>Invoice</TH><TH>For</TH><TH>Amount</TH><TH>Issued</TH><TH>Status</TH><TH className="text-right">Actions</TH></TR></THead>
+              <THead><TR><TH>Invoice</TH><TH>For</TH><TH>Amount</TH><TH>Issued</TH><TH>Paid</TH><TH>Status</TH><TH className="text-right">Actions</TH></TR></THead>
               <TBody>
                 {invoices.map((inv) => {
                   const who = inv.purchase?.customer ?? inv.investment?.investor;
@@ -89,6 +101,7 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
                       </TD>
                       <TD>{formatNGN(toNumber(inv.amount))}</TD>
                       <TD>{format(inv.issuedAt, "MMM d")}</TD>
+                      <TD>{inv.payment ? format(inv.payment.paidAt, "MMM d") : "—"}</TD>
                       <TD><Badge variant={inv.status === "PAID" ? "success" : inv.status === "AWAITING_REVIEW" ? "warning" : inv.status === "CANCELLED" ? "secondary" : "danger"}>{inv.status}</Badge></TD>
                       <TD className="flex items-center justify-end gap-2">
                         {inv.proofKey ? <ProofLink proofKey={inv.proofKey} /> : null}
@@ -97,6 +110,15 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
                             <input type="hidden" name="invoiceId" value={inv.id} />
                             <Button size="sm" type="submit">Mark paid</Button>
                           </form>
+                        ) : null}
+                        {inv.status !== "PAID" ? (
+                          <>
+                            <Link href={`/admin/invoices/${inv.id}/edit`}><Button variant="outline" size="sm">Edit</Button></Link>
+                            <form action={deleteInvoiceAction}>
+                              <input type="hidden" name="invoiceId" value={inv.id} />
+                              <ConfirmDeleteButton confirmMessage={`Delete invoice ${inv.number}? This cannot be undone.`} />
+                            </form>
+                          </>
                         ) : null}
                       </TD>
                     </TR>

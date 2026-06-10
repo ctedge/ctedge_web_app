@@ -231,6 +231,92 @@ export async function createInvoice(formData: FormData) {
   return { ok: true, id: invoice.id } as const;
 }
 
+const deleteInvoiceSchema = z.object({ invoiceId: z.string().min(1) });
+
+export async function deleteInvoice(formData: FormData) {
+  await requireRole("ADMIN");
+  const parsed = deleteInvoiceSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { ok: false, message: "Invalid input" } as const;
+
+  const invoice = await prisma.invoice.findUnique({ where: { id: parsed.data.invoiceId } });
+  if (!invoice) return { ok: false, message: "Invoice not found" } as const;
+  if (invoice.status === "PAID") return { ok: false, message: "Paid invoices cannot be deleted" } as const;
+
+  await prisma.invoice.delete({ where: { id: invoice.id } });
+
+  revalidatePath("/admin/invoices");
+  revalidatePath("/dashboard/payments");
+  revalidatePath("/dashboard/properties");
+  revalidatePath("/investor/my-investments");
+  return { ok: true } as const;
+}
+
+const updateInvoiceSchema = z.object({
+  invoiceId: z.string().min(1),
+  amount: z.coerce.number().positive(),
+  dueAt: z.string().optional().refine((value) => !value || !Number.isNaN(new Date(value).valueOf()), {
+    message: "Invalid due date",
+  }),
+  notes: z.string().max(500).optional(),
+});
+
+export async function updateInvoice(formData: FormData) {
+  await requireRole("ADMIN");
+  const parsed = updateInvoiceSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { ok: false, message: "Invalid invoice input" } as const;
+  const d = parsed.data;
+
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: d.invoiceId },
+    include: { purchase: true, investment: true },
+  });
+  if (!invoice) return { ok: false, message: "Invoice not found" } as const;
+  if (invoice.status === "PAID") return { ok: false, message: "Paid invoices cannot be edited" } as const;
+
+  await prisma.invoice.update({
+    where: { id: invoice.id },
+    data: {
+      amount: d.amount,
+      dueAt: d.dueAt ? new Date(d.dueAt) : null,
+      notes: d.notes ?? null,
+    },
+  });
+
+  const ownerId = invoice.purchase?.customerId ?? invoice.investment?.investorId;
+  if (ownerId) {
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+      const path = invoice.target === "PURCHASE"
+        ? `/dashboard/properties/${invoice.purchaseId}`
+        : `/investor/my-investments/${invoice.investmentId}`;
+      const { html, text } = await renderEmail(
+        InvoiceEmail({
+          invoiceNumber: invoice.number,
+          amount: formatNGN(d.amount),
+          dueAt: d.dueAt ? new Date(d.dueAt).toDateString() : undefined,
+          invoiceUrl: `${siteUrl}${path}`,
+        })
+      );
+      await notify({
+        userId: ownerId,
+        title: `Invoice ${invoice.number} updated`,
+        body: `Invoice ${invoice.number} was updated. New amount: ${formatNGN(d.amount)}.`,
+        type: "PAYMENT",
+        url: path,
+        email: { subject: `Invoice ${invoice.number} updated`, html, text },
+      });
+    } catch (err) {
+      console.error("[invoices] update notification failed:", err);
+    }
+  }
+
+  revalidatePath("/admin/invoices");
+  revalidatePath("/dashboard/payments");
+  revalidatePath("/dashboard/properties");
+  revalidatePath("/investor/my-investments");
+  return { ok: true } as const;
+}
+
 const markPaidSchema = z.object({ invoiceId: z.string().min(1) });
 
 export async function markInvoicePaid(formData: FormData) {
