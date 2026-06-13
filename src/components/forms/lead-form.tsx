@@ -42,8 +42,9 @@ export function LeadForm({
           {state.errors?.phone ? <p className="animate-fade-in mt-1 text-xs text-red-600">{state.errors.phone[0]}</p> : null}
         </div>
         <div>
-          <Label htmlFor="email">Email (optional)</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" className="transition-smooth focus:shadow-md" />
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" name="email" type="email" required autoComplete="email" className="transition-smooth focus:shadow-md" />
+          {state.errors?.email ? <p className="animate-fade-in mt-1 text-xs text-red-600">{state.errors.email[0]}</p> : null}
         </div>
       </div>
       <div className="animate-slide-up animate-delay-300">

@@ -9,7 +9,7 @@ import { LeadNoticeEmail } from "@/lib/emails/templates";
 const schema = z.object({
   name: z.string().min(2, "Name is too short").max(120),
   phone: z.string().min(7, "Phone is required").max(30),
-  email: z.string().email().optional().or(z.literal("")).transform((v) => (v ? v : undefined)),
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
   interest: z.string().max(200).optional(),
   source: z.string().max(100).optional(),
   note: z.string().max(2000).optional(),
